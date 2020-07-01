@@ -1,0 +1,2 @@
+# mycode
+a learning record
