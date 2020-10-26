@@ -11,11 +11,11 @@
 //  General support code for lexer and parser.
 //
 //  This file contains:
-//      fatal_error            print an error message and exit打印错误信息并退出
-//      print_escaped_string   print a string showing escape characters打印一个显示转义字符的字符串
-//      print_seal_token       print a seal token and its semantic value打印sela token及其语义值
-//      dump_seal_token        dump a readable token representation转储可读的token表示
-//      strdup                 duplicate a string (missing from some libraries)复制字符串(一些库中缺少)
+//      fatal_error            print an error message and exit
+//      print_escaped_string   print a string showing escape characters
+//      print_seal_token       print a seal token and its semantic value
+//      dump_seal_token        dump a readable token representation
+//      strdup                 duplicate a string (missing from some libraries)
 //
 ///////////////////////////////////////////////////////////////////////////////
 
