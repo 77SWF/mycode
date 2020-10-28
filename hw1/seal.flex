@@ -46,7 +46,8 @@ extern YYSTYPE seal_yylval;
  /*
  *  Add Your own definitions here
  */
-
+int string_len;
+bool contain_null;
  
 %}
 
@@ -57,7 +58,7 @@ extern YYSTYPE seal_yylval;
 %option noyywrap
 %option yymore
 
-%x LINE_COMMENT MULTILINE_COMMENT STRING
+%x LINE_COMMENT MULTILINE_COMMENT STRING AS_STRING
 
 DIGIT [0-9]
 
@@ -112,9 +113,13 @@ DIGIT [0-9]
  *=============
  */
 
+ /* " " */
+
 <INITIAL>\" {
+  memset(string_buf,0,MAX_STR_CONST);
+  string_len=0;
+  contain_null=false;
   BEGIN STRING;
-  yymore();
 }
 
 <STRING><<EOF>> {
@@ -123,38 +128,112 @@ DIGIT [0-9]
   return (ERROR);
 }
 
+<STRING>\\0 {
+  string_buf[string_len++]=0;
+  contain_null=true;
+}
+
+<STRING>\\. {
+  if(string_len>=MAX_STR_CONST){
+    strcpy(seal_yylval.error_msg,"string longer than 256.");
+    BEGIN 0;
+    return (ERROR);
+  }
+
+  switch(yytext[1]){
+    case '\\':string_buf[string_len++]='\\';break;
+    case '\"':string_buf[string_len++]='\"';break;
+    case 'n':string_buf[string_len++]='\n';break;
+    case 't':string_buf[string_len++]='\t';break;
+    case 'b':string_buf[string_len++]='\b';break;
+    case 'f':string_buf[string_len++]='\f';break;
+    default:string_buf[string_len++]=yytext[1];
+  }
+}
+
 <STRING>\\\n {
   curr_lineno++;
-  yymore();
+  string_buf[string_len++]='\n';
 }
 
 <STRING>\n {
   curr_lineno++;
-  strcpy(seal_yylval.error_msg,"start new line without '\'");
+  strcpy(seal_yylval.error_msg,"newline in quotation must use a '\\'");
   BEGIN 0;
   return (ERROR);
 }
- 
- /*zai kan */
-<STRING>[^\"] {yymore();}
-
-<STRING>\\0 {
-  strcpy(seal_yylval.error_msg,"string contains ASCII 0x00");
-  return (ERROR);
-}
-
- /* escape character */
-<STRING>\\[^0] {yymore();}
 
 <STRING>\" {
+  if(contain_null==true){
+    strcpy(seal_yylval.error_msg,"String contain null character '\\0'");
+    BEGIN 0;
+    return (ERROR);
+    }
 
+  if(string_len>=MAX_STR_CONST){
+    strcpy(seal_yylval.error_msg,"string longer than 256.");
+    BEGIN 0;
+    return (ERROR);
+  }
   
-  seal_yylval.symbol=stringtable.add_string(yytext);
+  seal_yylval.symbol=stringtable.add_string(string_buf);
   BEGIN 0;
   return (CONST_STRING);
 }
 
+<STRING>. {
+  if(string_len>=MAX_STR_CONST){
+    strcpy(seal_yylval.error_msg,"string longer than 256.");
+    BEGIN 0;
+    return (ERROR);
+  }
+  string_buf[string_len++]=*yytext;
+}
 
+ /* `` */
+
+<INITIAL>\` {
+  memset(string_buf,0,MAX_STR_CONST);
+  string_len=0;
+  contain_null=false;
+  BEGIN AS_STRING;
+}
+
+<AS_STRING><<EOF>> {
+  strcpy(seal_yylval.error_msg,"EOF in srting");
+  BEGIN 0;
+  return (ERROR);
+}
+
+<AS_STRING>\\ {
+  string_buf[string_len++]='\\';
+}
+
+<AS_STRING>\n {
+  string_buf[string_len++]=*yytext;
+  curr_lineno++;
+}
+
+<AS_STRING>\` {
+  if(string_len>=MAX_STR_CONST){
+    strcpy(seal_yylval.error_msg,"string longer than 256.");
+    BEGIN 0;
+    return (ERROR);
+  }
+  
+  seal_yylval.symbol=stringtable.add_string(string_buf);
+  BEGIN 0;
+  return (CONST_STRING);
+}
+
+<AS_STRING>. {
+  if(string_len>=MAX_STR_CONST){
+    strcpy(seal_yylval.error_msg,"string longer than 256.");
+    BEGIN 0;
+    return (ERROR);
+  }
+  string_buf[string_len++]=*yytext;
+}
 
 
  /*=======
@@ -220,7 +299,7 @@ true {
  *=========
  */
 
-[A-Z][A-Za-z0-9_]* {
+Int|Float|String|Bool|Void {
   seal_yylval.symbol=idtable.add_string(yytext);
   return TYPEID;
 }
