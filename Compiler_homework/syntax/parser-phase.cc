@@ -26,7 +26,7 @@
 // These globals keep everything working.
 //
 FILE *token_file = stdin;		// we read from this file
-extern Program ast_root;	 // the AST produced by the parse
+extern Program ast_root;	 // the AST produced by the parse AST的根是program类型，只有AST的根是
 
 extern int optind;  // used for option processing (man 3 getopt for more info)
 
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
         cerr << "ast_root must be initialized.\n";
 	    exit(1);
     }
-    ast_root->dump_with_types(cout,0);
+    ast_root->dump_with_types(cout,0); //函数递归方式输出一颗抽象语法树AST
     fclose(fin);
     return 0;
 }
