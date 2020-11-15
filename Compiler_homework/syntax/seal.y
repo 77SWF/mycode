@@ -14,8 +14,7 @@
   extern char *curr_filename;
   /* Locations */
   #define YYLTYPE int              /* the type of locations */
-  #define seal_yylloc curr_lineno  /* use the curr_lineno from the lexer
-  for the location of tokens */
+  #define seal_yylloc curr_lineno  /* use the curr_lineno from the lexerfor the location of tokens */
     
     extern int node_lineno;          /* set before constructing a tree node
     to whatever you want the line number
@@ -147,6 +146,23 @@
     %type <program> program
     %type <decls> decl_list
     %type <decl> decl
+    %type <variableDecl> variableDecl
+    %type <variableDecls> variableDecl_list
+    %type <callDecl> callDecl
+    %type <variable> variable
+    %type <variables> variable_list
+    %type <variables> noempty_variable_list
+    %type <stmtBlock> stmtBlock
+    %type <stmts>  stmt_list
+    %type <expr> expr 
+    %type <ifStmt> ifStmt
+    %type <whileStmt> whileStmt
+    %type <forStmt> forStmt
+    %type <breakStmt> breakStmt
+    %type <continueStmt> continueStmt
+    %type <returnStmt> returnStmt
+    %type <stmt> stmt 
+    %type <expr> empty_or_not_expr
 
 	// Add more here
 
@@ -166,7 +182,144 @@
       ;
 
     // add more syntax rules here
-    
+
+    decl_list : decl_list decl
+              { $$ = append_Decls($1,single_Decls($2)); }
+              
+              | decl
+              { $$ = single_Decls($1); }
+              
+              ;
+
+    decl : variableDecl
+         { $$ = $1; }
+         
+         | callDecl
+         { $$ = $1; }
+
+         ;
+
+    variableDecl : VAR variable ';'
+                 { $$ = variableDecl(variable); }
+                 ;
+
+    variable : OBJECTID TYPEID
+             { $$ = variable($1,$2); }
+             ;
+
+    callDecl : FUNC OBJECTID '(' variable_list ')' TYPEID stmtBlock
+             { $$ = callDecl($2,$4,$6,$7); }                      
+             ;
+
+    variable_list : noempty_variable_list
+                  { $$ = $1; }
+
+                  | 
+                  { $$ = nil_VariableDecls(); }
+
+                  ;
+
+    noempty_variable_list : noempty_variable_list ',' variable
+                          { $$ = append_VariableDecls($1,single_VariableDecls($3)); }
+
+                          | variable
+                          { $$ = single_VariableDecls($1); }
+
+                          ;
+
+    stmtBlock : '{' variableDecl_list stmt_list '}'
+              { $$ = stmtBlock($2,$3); }
+
+    variableDecl_list : variableDecl_list variableDecl
+                      { $$ = append_VariableDecls($1,single_VariableDecls($2)); }
+
+                      | 
+                      { $$ = nil_VariableDecls(); }
+
+                      ;
+
+    stmt_list : stmt_list stmt
+              { $$ = append_Stmts($1,single_Stmts($2)); }
+
+              | 
+              { $$ = nil_Stmts(); }
+
+              ;                  
+
+    stmt : ';'
+         { $$ = no_expr(); }
+
+         | expr ';'
+         { $$ = $1; }
+
+         | ifStmt
+         { $$ = $1; }
+
+         | whileStmt
+         { $$ = $1; }
+
+         | forStmt
+         { $$ = $1; }
+
+         | breakStmt
+         { $$ = $1; }
+
+         | continueStmt
+         { $$ = $1; }
+
+         | returnStmt
+         { $$ = $1; }
+
+         | stmtBlock
+         { $$ = $1; }
+
+         ;
+
+    ifStmt : IF expr stmtBlock
+           { $$ = ifstmt($2,$3,nil_StmtBlocks()); }
+
+           | IF expr stmtBlock ELSE stmtBlock
+           { $$ = ifstmt($2,$3,$5); }
+
+           ;
+
+    whileStmt : WHILE expr stmtBlock
+              { $$ = whilestmt($2,$3); }
+
+              ;
+
+    forStmt : FOR empty_or_not_expr ';' empty_or_not_expr ';' empty_or_not_expr stmtBlock
+            { $$ = forstmt($2,$4,$6,$7); }
+            
+    empty_or_not_expr : 
+                      { $$ = no_expr(); }
+                      
+                      | expr
+                      { $$ = $1; }
+
+                      ;
+
+    returnStmt : RETURN ';'
+               { $$ = returnstmt(no_expr()); }
+
+               | RETURN expr ';'
+               { $$ = returnstmt($2); }
+
+               ;
+
+    continueStmt : CONTINUE
+                 { $$ = continuestmt(); }
+
+                 ;
+
+    breakStmt : BREAK
+              { $$ = breakstmt(); }
+
+              ;
+
+    expr :                
+
+
     /* end of grammar */
 %%
     
