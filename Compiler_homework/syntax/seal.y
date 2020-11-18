@@ -163,6 +163,10 @@
     %type <returnStmt> returnStmt
     %type <stmt> stmt 
     %type <expr> empty_or_not_expr
+    %type <call> call
+    %type <actuals> actuals
+    %type <exprs> nonempty_expr_list 
+    %type <expr> constant
 
 	// Add more here
 
@@ -317,7 +321,61 @@
 
               ;
 
-    expr :                
+    expr : OBJECTID '=' expr
+         { $$ = assign($1,$3); }
+
+         | constant
+         { $$ = $1; }
+
+         | call
+         { $$ = $1; }
+
+         | '(' expr ')'
+         { $$ = $2; }
+
+         | OBJECTID
+         { $$ = object($1); }
+
+         |
+
+         ;
+
+
+    constant : CONST_INT
+             { $$ = const_int($1); }
+
+             | CONST_FLOAT
+             { $$ = const_float($1); }
+
+             | CONST_BOOL
+             { $$ = const_bool($1); }
+
+             | CONST_STRING
+             { $$ = const_string($1); }
+
+             ;
+
+    call : OBJECTID '(' actuals ')'
+         { $$ = call($1,$3); }
+
+         ;
+         
+    actuals : nonempty_expr_list
+            { $$ = $1; }
+
+            | 
+            { $$ = nil_Actuals(); } 
+
+            ;  
+
+    nonempty_expr_list : nonempty_expr_list ',' expr
+                       { $$ = append_Exprs($1,single_Exprs($3)); }
+
+                       | expr
+                       { $$ = single_Exprs($1); }
+
+                       ;
+
 
 
     /* end of grammar */
