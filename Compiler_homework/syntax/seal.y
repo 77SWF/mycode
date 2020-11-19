@@ -162,7 +162,6 @@
     %type <continueStmt> continueStmt
     %type <returnStmt> returnStmt
     %type <stmt> stmt 
-    %type <expr> empty_or_not_expr
     %type <call> call
     %type <actuals> actual_list
     %type <actuals> nonempty_actual_list 
@@ -301,16 +300,31 @@
 
               ;
 
-    forStmt : FOR empty_or_not_expr ';' empty_or_not_expr ';' empty_or_not_expr stmtBlock
+    forStmt : FOR expr ';' expr ';' expr stmtBlock
             { $$ = forstmt($2,$4,$6,$7); }
-            
-    empty_or_not_expr : 
-                      { $$ = no_expr(); }
-                      
-                      | expr
-                      { $$ = $1; }
 
-                      ;
+            | FOR ';' expr ';' expr stmtBlock
+            { $$ = forstmt(no_expr(),$3,$5,$6); }
+
+            | FOR expr ';' ';' expr stmtBlock
+            { $$ = forstmt($2,no_expr(),$5,$6); }
+
+            | FOR expr ';' expr ';' stmtBlock
+            { $$ = forstmt($2,$4,no_expr(),$6); }
+
+            | FOR expr ';' ';' stmtBlock
+            { $$ = forstmt($2,no_expr(),no_expr(),$5); }
+
+            | FOR ';' expr ';' stmtBlock
+            { $$ = forstmt(no_expr(),$3,no_expr(),$5); }
+
+            | FOR ';' ';' expr stmtBlock
+            { $$ = forstmt(no_expr(),no_expr(),$4,$5); }
+
+            | FOR ';' ';' stmtBlock
+            { $$ = forstmt(no_expr(),no_expr(),no_expr(),$4); }
+            ;
+            
 
     returnStmt : RETURN ';'
                { $$ = returnstmt(no_expr()); }
@@ -320,12 +334,12 @@
 
                ;
 
-    continueStmt : CONTINUE
+    continueStmt : CONTINUE ';'
                  { $$ = continuestmt(); }
 
                  ;
 
-    breakStmt : BREAK
+    breakStmt : BREAK ';'
               { $$ = breakstmt(); }
 
               ;
