@@ -164,14 +164,23 @@
     %type <stmt> stmt 
     %type <expr> empty_or_not_expr
     %type <call> call
-    %type <actuals> actuals
-    %type <exprs> nonempty_expr_list 
+    %type <actuals> actual_list
+    %type <actuals> nonempty_actual_list 
     %type <expr> constant
 
 	// Add more here
 
     /* Precedence declarations go here. */
 	  %nonassoc '='
+    %right OR
+    %right AND
+    %nonassoc EQUAL NE
+    %nonassoc '<' LE '>' GE
+    %left '+' '-'
+    %left '*' '/' '%'
+    %nonassoc NEGATIVE '!'
+    %left '~' '&' '|' '^'
+
 
 	// Add more here
     
@@ -204,7 +213,7 @@
          ;
 
     variableDecl : VAR variable ';'
-                 { $$ = variableDecl(variable); }
+                 { $$ = variableDecl($2); }
                  ;
 
     variable : OBJECTID TYPEID
@@ -219,15 +228,15 @@
                   { $$ = $1; }
 
                   | 
-                  { $$ = nil_VariableDecls(); }
+                  { $$ = nil_Variables(); }
 
                   ;
 
     noempty_variable_list : noempty_variable_list ',' variable
-                          { $$ = append_VariableDecls($1,single_VariableDecls($3)); }
+                          { $$ = append_Variables($1,single_Variables($3)); }
 
                           | variable
-                          { $$ = single_VariableDecls($1); }
+                          { $$ = single_Variables($1); }
 
                           ;
 
@@ -279,8 +288,8 @@
 
          ;
 
-    ifStmt : IF expr stmtBlock
-           { $$ = ifstmt($2,$3,nil_StmtBlocks()); }
+    ifStmt : IF expr stmtBlock 
+           { $$ = ifstmt($2,$3,stmtBlock(nil_VariableDecls(),nil_Stmts())); }
 
            | IF expr stmtBlock ELSE stmtBlock
            { $$ = ifstmt($2,$3,$5); }
@@ -336,7 +345,62 @@
          | OBJECTID
          { $$ = object($1); }
 
-         |
+         | expr '+' expr
+         { $$ = add($1,$3); }
+
+         | expr '-' expr
+         { $$ = minus($1,$3); }
+
+         | expr '*' expr
+         { $$ = multi($1,$3); }
+
+         | expr '/' expr
+         { $$ = divide($1,$3); }
+
+         | expr '%' expr
+         { $$ = mod($1,$3); }
+
+         | '-' expr %prec NEGATIVE
+         { $$ = neg($2); }
+
+         | expr '<' expr
+         { $$ = lt($1,$3); }
+
+         | expr LE expr
+         { $$ = le($1,$3); }
+
+         | expr EQUAL expr
+         { $$ = equ($1,$3); }
+
+         | expr NE expr
+         { $$ = neq($1,$3); }
+
+         | expr GE expr
+         { $$ = ge($1,$3); }
+
+         | expr '>' expr
+         { $$ = gt($1,$3); }
+
+         | expr AND expr
+         { $$ = and_($1,$3); }
+
+         | expr OR expr
+         { $$ = or_($1,$3); }
+
+         | expr '^' expr
+         { $$ = xor_($1,$3); }
+
+         | '!' expr
+         { $$ = not_($2); }
+
+         | '~' expr
+         { $$ = bitnot($2); }
+
+         | expr '&' expr
+         { $$ = bitand_($1,$3); }
+
+         | expr '|' expr
+         { $$ = bitor_($1,$3); }
 
          ;
 
@@ -355,12 +419,12 @@
 
              ;
 
-    call : OBJECTID '(' actuals ')'
+    call : OBJECTID '(' actual_list ')'
          { $$ = call($1,$3); }
 
          ;
          
-    actuals : nonempty_expr_list
+    actual_list : nonempty_actual_list
             { $$ = $1; }
 
             | 
@@ -368,11 +432,11 @@
 
             ;  
 
-    nonempty_expr_list : nonempty_expr_list ',' expr
-                       { $$ = append_Exprs($1,single_Exprs($3)); }
+    nonempty_actual_list : nonempty_actual_list ',' expr
+                       { $$ = append_Actuals($1,single_Actuals(actual($3))); }
 
                        | expr
-                       { $$ = single_Exprs($1); }
+                       { $$ = single_Actuals(actual($1)); }
 
                        ;
 
