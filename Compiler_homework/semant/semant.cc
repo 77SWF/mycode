@@ -175,7 +175,7 @@ static void check_calls(Decls decls) {
     }
 }
 
-//写了
+//函数声明：形参、返回值
 static void check_main() {
     //main函数定义
     if(funcdecl_Table.find(Main) == funcdecl_Table.end())
@@ -248,12 +248,17 @@ void StmtBlock_class::check(Symbol type) {
 }
 
 void IfStmt_class::check(Symbol type) {
-    if(this->getCondition()->checkType() != Bool)
+    if(condition->checkType() != Bool)
         semant_error(this) << "condition of 'if' does not have type Bool.\n";
+    
+    thenexpr->checkType();
+    elseexpr->checkType();
 }
 
 void WhileStmt_class::check(Symbol type) {
-
+    if(condition->checkType() != Bool)
+        semant_error(this) << "condition of 'while' does not have type Bool.\n";
+    
 }
 
 void ForStmt_class::check(Symbol type) {
@@ -302,11 +307,12 @@ Symbol BreakStmt_class::checkType(){
     return type;
 }
 
-
+//函数调用：类里有实参列表了，每个function可以取到形参列表
 Symbol Call_class::checkType(){
 
 }
 
+//实参：函数调用里可用吧？和形参要一起看把？那这里用来检查每个expr把
 Symbol Actual_class::checkType(){
 
 }
