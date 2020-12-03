@@ -54,7 +54,8 @@ static Symbol
     Bool,
     Void,
     Main,
-    print,
+    print
+    /*,
     if_stmt,
     while_stmt,
     for_stmt,
@@ -62,6 +63,7 @@ static Symbol
     continue_stmt,
     return_stmt,
     stmt_block
+    */
     ;
 
 bool isValidCallName(Symbol type) {
@@ -168,7 +170,7 @@ static void check_main() {
     CallDecl_class* main_decl = static_cast<CallDecl_class*>(curr_decl);
 
     if(main_decl->getType() != Void) 
-        semant_error(curr_decl) << isValidTypeName(main_decl->getType()) << "Function main need return Void.\n";
+        semant_error(curr_decl) << "Main function should have return type Void.\n";
 
     Variables formal_paras = main_decl->getVariables(); //形参链表
     if(formal_paras->len() != 0)
@@ -220,7 +222,7 @@ void CallDecl_class::check() {
     ReturnStmt_class* return_stmt = static_cast<ReturnStmt_class*>(last_stmt);
     Symbol returnexpr_type = return_stmt->getValue()->checkType();
     if(!sameType(returnexpr_type,returnType))
-        semant_error(this) << "Inferred return type " << returnexpr_type << " of function " << name << " does not conform to declared return type " << returnType << ".\n";
+        semant_error(return_stmt) << "Return " << returnexpr_type << ",but need " << returnType<< ".\n";
 }
 
 //语句块检查
@@ -233,9 +235,9 @@ void StmtBlock_class::check(Symbol type) {
         VariableDecl curr_vardecl = body_vardecls->nth(i);
         //声明的类型不是五种之一？没要求？
         if (curr_vardecl->getType() == Void)
-            semant_error(curr_vardecl) << "Variable type cant't be Void.\n";
-        else if(objectEnv.lookup(curr_vardecl->getName()))
-            semant_error(curr_vardecl) << "Local variable " << curr_vardecl->getName() << " is multiply declared.\n";
+            semant_error(curr_vardecl) << "Var " << curr_vardecl->getName() << " cantnot be of type Void.\n";
+        else if(objectEnv.probe(curr_vardecl->getName()))
+            semant_error(curr_vardecl) << "var " << curr_vardecl->getName() << " was previously declared.\n";
         else
             objectEnv.addid(curr_vardecl->getName(),new Symbol(curr_vardecl->getType()));
     }
@@ -243,13 +245,20 @@ void StmtBlock_class::check(Symbol type) {
 
     //语句块后的语句链表，递归调用
     Stmts body_stmts = this->getStmts();
+    /*
     for (int i = body_stmts->first(); body_stmts->more(i); i = body_stmts->next(i))
     {
         Stmt curr_stmt = body_stmts->nth(i);
         Symbol type = curr_stmt->checkType();
-        if(type == if_stmt||while_stmt||for_stmt||break_stmt||continue_stmt||return_stmt||stmt_block)
+
+        if(type == break_stmt)
+            semant_error(curr_stmt)<<"break must be used in a loop sentence.\n";
+        else if(type == continue_stmt)
+            semant_error(curr_stmt)<< "continue must be used in a loop sentence.\n";
+        else if(type == if_stmt||while_stmt||for_stmt||return_stmt||stmt_block)
             curr_stmt->check(Int); //除了expr外的6种+遇到StmtBlock会递归调用本函数
     }
+    */
 }
 
 void IfStmt_class::check(Symbol type) {
@@ -323,7 +332,48 @@ Symbol BreakStmt_class::checkType(){
 
 //函数调用：类里有实参列表了，每个function可以取到形参列表
 Symbol Call_class::checkType(){
+    bool is_error = false;
+    Symbol returntype;
 
+    if (funcdecl_Table.find(name) != funcdecl_Table.end())
+    {
+        semant_error(this) << "call undefined function.\n";
+        return Void;
+    }
+    else
+    {
+        Decl curr_func = funcdecl_Table[name]; //不用find
+        CallDecl_class* curr_funcdecl = static_cast<CallDecl_class*>(curr_func);
+        returntype = curr_funcdecl->getType();
+        Variables paras = curr_funcdecl->getVariables();
+
+        int k1 = actuals->first();
+        int k2 = paras->first();
+
+        while(actuals->more(k1) && paras->more(k2))
+        {
+            Actual curr_actual = actuals->nth(k1);
+            Variable curr_para = paras->nth(k2);
+
+            if(!sameType( curr_para->getType(),curr_actual->checkType()) )
+            {
+                semant_error(this) << "In call of function " << name << ", type " << curr_actual->checkType() << " of parameter " << curr_para->getName() << " does not conform to declared type " << curr_para->getType() << ".\n";
+                is_error = true;
+            }
+        }
+        
+        k1 = actuals->next(k1);
+        k2 = paras->next(k2);
+
+        //more:n<链表里个数，返回1，否则0
+        if(actuals->more(k1) xor paras->more(k2))
+        {
+            semant_error(this) << "Function " << name << " called with wrong number of arguments.\n";
+            is_error = true;
+        }
+
+        return returntype;
+    }
 }
 
 //实参：函数调用里可用吧？和形参要一起看把？那这里用来检查每个expr把
@@ -336,14 +386,14 @@ Symbol Assign_class::checkType(){
     Symbol rtype = value->checkType();
 
     //先声明再使用
-    if(objectEnv.lookup(lvalue) == 0)
+    if(objectEnv.probe(lvalue) == 0)
     {
         semant_error(this) << "Assignment to undeclared variable " << lvalue << ".\n";
         type = rtype;
         return type;
     }
 
-    Symbol ltype = *objectEnv.lookup(lvalue);
+    Symbol ltype = *objectEnv.probe(lvalue);
 
     //赋值左右类型不同
     if(!sameType(rtype,ltype))
@@ -461,9 +511,9 @@ Symbol No_expr_class::checkType(){
 
 void Program_class::semant() {
     initialize_constants();
-    install_calls(decls);//写了
-    check_main();//写了
-    install_globalVars(decls);//写了
+    install_calls(decls);
+    check_main();
+    install_globalVars(decls);
     check_calls(decls);
     
     if (semant_errors > 0) {
