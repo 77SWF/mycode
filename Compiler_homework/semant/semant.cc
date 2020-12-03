@@ -13,10 +13,9 @@ static Decl curr_decl = 0;
 
 typedef SymbolTable<Symbol, Symbol> ObjectEnvironment; // name, type
 ObjectEnvironment objectEnv;
-ObjectEnvironment globalVarsDecl_Table;
 
-typedef std::map<Symbol, Decl> DeclTable;
-DeclTable funcdecl_Table; //表内value是Decl不是CallDecl_class
+typedef std::map<Symbol, Decl> DeclTable;//key=词法提取的token，value=函数或变量声明
+DeclTable funcdecl_Table; //表内value是父类Decl、不是子类CallDecl_class
 
 ///////////////////////////////////////////////
 // helper func
@@ -56,12 +55,13 @@ static Symbol
     Void,
     Main,
     print,
-    ifstmt,
-    whilestmt,
-    forstmt,
-    breakstmt,
-    continuestmt,
-    returnstmt
+    if_stmt,
+    while_stmt,
+    for_stmt,
+    break_stmt,
+    continue_stmt,
+    return_stmt,
+    stmt_block
     ;
 
 bool isValidCallName(Symbol type) {
@@ -101,10 +101,11 @@ static bool sameType(Symbol name1, Symbol name2) {
     return strcmp(name1->get_string(), name2->get_string()) == 0;
 }
 
-//写了
+//预先配置所有函数声明
 static void install_calls(Decls decls) {
     for (int i = decls->first(); decls->more(i); i = decls->next(i)) {
         curr_decl = decls->nth(i);
+        //是函数声明还是变量声明
         if(curr_decl->isCallDecl())
         {
             if (curr_decl->getName() == print)
@@ -117,9 +118,9 @@ static void install_calls(Decls decls) {
     }
 }
 
-//写了
+//预先配置所有全局变量，到时候查用lookup才能查到
 static void install_globalVars(Decls decls) {
-    globalVarsDecl_Table.enterscope();
+    objectEnv.enterscope();
 
     for (int i = decls->first(); decls->more(i); i = decls->next(i)) {
         curr_decl = decls->nth(i);
@@ -128,15 +129,14 @@ static void install_globalVars(Decls decls) {
 
         if(variable_decl->getType() == Void)
             semant_error(curr_decl) << "Variable" << curr_decl->getName() << "type cant't be Void.\n";
-        else if(globalVarsDecl_Table.lookup(variable_decl->getName()))
+        else if(objectEnv.lookup(variable_decl->getName()))
             semant_error(curr_decl) << "Globle variable" << variable_decl->getName() << " is multiply defined.\n";
         else    
-            globalVarsDecl_Table.addid(variable_decl->getName(),new Symbol(variable_decl->getType()));
+            objectEnv.addid(variable_decl->getName(),new Symbol(variable_decl->getType()));
     }
-    globalVarsDecl_Table.exitscope();
 }
 
-//函数调用吧？
+//函数和变量
 static void check_calls(Decls decls) {
 //要处理每个函数的：返回类型、有无return、形参、变量
     //遍历已声明的每个函数
@@ -148,30 +148,9 @@ static void check_calls(Decls decls) {
 
         //形参、返回类型检查
         call_decl->check();
-
-        //每个函数的局部变量
-        VariableDecls_class* body_vardecls = call_decl->getBody()->getVariableDecls();
-        objectEnv.enterscope();
-        for (int i = body_vardecls->first(); body_vardecls->more(i); i = body_vardecls->next(i))
-        {
-            VariableDecl curr_vardecl = body_vardecls->nth(i);
-            //声明的类型不是五种之一？没要求？
-            if (curr_vardecl->getType() == Void)
-                semant_error(curr_vardecl) << "Variable type cant't be Void.\n";
-            else if(objectEnv.lookup(curr_vardecl->getName()))
-                semant_error(curr_vardecl) << "Local variable " << curr_vardecl->getName() << " is multiply declared.\n";
-            else
-                objectEnv.addid(curr_vardecl->getName(),new Symbol(curr_vardecl->getType()));
-        }
-        objectEnv.exitscope();
-
-        Stmts body_stmts = call_decl->getBody()->getStmts();
-        for (int i = body_stmts->first(); body_stmts->more(i); i = body_stmts->next(i))
-        {
-            Stmt curr_stmt = body_stmts->nth(i);
-            curr_stmt->check();
-        }
-
+        //语句块检查，语句块会嵌套
+        StmtBlock func_stmtblock = call_decl->getBody();
+        func_stmtblock->check(Int);
     }
 }
 
@@ -196,11 +175,12 @@ static void check_main() {
         semant_error(curr_decl) << "Function main can't have parameter.\n";
 }
 
+//变量声明的判定，在StmtBlock_class::check调用？可不用吧
 void VariableDecl_class::check() {
 
 }
 
-//函数声明！！调用在check_calls里
+//函数声明：形参/返回语句！！在check_calls调用，写好了
 void CallDecl_class::check() {
     objectEnv.enterscope();
     //遍历这个函数声明的每个“x Float”形参
@@ -213,7 +193,7 @@ void CallDecl_class::check() {
         else if(objectEnv.lookup(curr_para->getName()))
             semant_error(curr_para) << "Formal parameter " << curr_para->getName() << " is multiply defined.\n";
         else
-            objectEnv.addid(curr_para->getName(),new Symbol(curr_para->getType));
+            objectEnv.addid(curr_para->getName(),new Symbol(curr_para->getType()));
     }
     objectEnv.exitscope();
 
@@ -223,9 +203,9 @@ void CallDecl_class::check() {
     Stmt last_stmt = body_stmts->nth(body_stmts->len()-1);
 
     //无返回语句
-    if(last_stmt->checkType() != returnstmt)
+    if(last_stmt->checkType() != return_stmt)
     {
-        semant_error(this) << "Function " << this->getName() << " has no return statement.\n";
+        semant_error(this) << "Function " << this->getName() << " must have an overall return statement.\n";
         return;
     }
 
@@ -233,7 +213,7 @@ void CallDecl_class::check() {
     //返回类型不在范围
     if(returnType!=Int && returnType!=Float && returnType!=String && returnType!=Bool && returnType!=Void)
     {
-        semant_error(this) << "Function " << this->getName() << " return error type.\n";
+        semant_error(this) << "Function " << this->getName() << " return illegal type.\n";
         return;
     }
     //不匹配
@@ -243,30 +223,59 @@ void CallDecl_class::check() {
         semant_error(this) << "Inferred return type " << returnexpr_type << " of function " << name << " does not conform to declared return type " << returnType << ".\n";
 }
 
+//语句块检查
 void StmtBlock_class::check(Symbol type) {
+    //语句块前的局部变量
+    VariableDecls_class* body_vardecls= this->getVariableDecls();
+    objectEnv.enterscope();
+    for (int i = body_vardecls->first(); body_vardecls->more(i); i = body_vardecls->next(i))
+    {
+        VariableDecl curr_vardecl = body_vardecls->nth(i);
+        //声明的类型不是五种之一？没要求？
+        if (curr_vardecl->getType() == Void)
+            semant_error(curr_vardecl) << "Variable type cant't be Void.\n";
+        else if(objectEnv.lookup(curr_vardecl->getName()))
+            semant_error(curr_vardecl) << "Local variable " << curr_vardecl->getName() << " is multiply declared.\n";
+        else
+            objectEnv.addid(curr_vardecl->getName(),new Symbol(curr_vardecl->getType()));
+    }
+    objectEnv.exitscope();
 
+    //语句块后的语句链表，递归调用
+    Stmts body_stmts = this->getStmts();
+    for (int i = body_stmts->first(); body_stmts->more(i); i = body_stmts->next(i))
+    {
+        Stmt curr_stmt = body_stmts->nth(i);
+        Symbol type = curr_stmt->checkType();
+        if(type == if_stmt||while_stmt||for_stmt||break_stmt||continue_stmt||return_stmt||stmt_block)
+            curr_stmt->check(Int); //除了expr外的6种+遇到StmtBlock会递归调用本函数
+    }
 }
 
 void IfStmt_class::check(Symbol type) {
     if(condition->checkType() != Bool)
         semant_error(this) << "condition of 'if' does not have type Bool.\n";
     
-    thenexpr->checkType();
-    elseexpr->checkType();
+    thenexpr->check(Int);
+    elseexpr->check(Int);
 }
 
 void WhileStmt_class::check(Symbol type) {
     if(condition->checkType() != Bool)
         semant_error(this) << "condition of 'while' does not have type Bool.\n";
-    
+
+    body->check(Int);
 }
 
 void ForStmt_class::check(Symbol type) {
-
+    if(!condition->is_empty_Expr() && condition->checkType() != Bool)
+        semant_error(this) << "condition of 'if' isn't empty but does not have type Bool.\n";
+    initexpr->checkType();
+    loopact->checkType();
 }
 
 void ReturnStmt_class::check(Symbol type) {
-
+    value->checkType();
 }
 
 void ContinueStmt_class::check(Symbol type) {
@@ -276,34 +285,39 @@ void ContinueStmt_class::check(Symbol type) {
 void BreakStmt_class::check(Symbol type) {
 
 }
-//自己增的6个函数
+//自己增的7个函数
+Symbol StmtBlock_class::checkType(){
+    type = stmt_block;
+    return type;
+}
+
 Symbol IfStmt_class::checkType(){
-    type = ifstmt;
+    type = if_stmt;
     return type;
 }
 
 Symbol WhileStmt_class::checkType(){
-    type = whilestmt;
+    type = while_stmt;
     return type;
 }
 
 Symbol ForStmt_class::checkType(){
-    type = forstmt;
+    type = for_stmt;
     return type;
 }
 
 Symbol ReturnStmt_class::checkType(){
-    type = returnstmt;
+    type = return_stmt;
     return type;
 }
 
 Symbol ContinueStmt_class::checkType(){
-    type = continuestmt;
+    type = continue_stmt;
     return type;
 }
 
 Symbol BreakStmt_class::checkType(){
-    type = breakstmt;
+    type = break_stmt;
     return type;
 }
 
