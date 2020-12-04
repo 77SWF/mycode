@@ -132,7 +132,7 @@ static void install_globalVars(Decls decls) {
         if(variable_decl->getType() == Void)
             semant_error(curr_decl) << "Variable" << curr_decl->getName() << "type cant't be Void.\n";
         else if(objectEnv.lookup(variable_decl->getName()))
-            semant_error(curr_decl) << "Globle variable" << variable_decl->getName() << " is multiply defined.\n";
+            semant_error(curr_decl) << " Globle var " << variable_decl->getName() << " was previously defined.\n";
         else    
             objectEnv.addid(variable_decl->getName(),new Symbol(variable_decl->getType()));
     }
@@ -197,7 +197,6 @@ void CallDecl_class::check() {
         else
             objectEnv.addid(curr_para->getName(),new Symbol(curr_para->getType()));
     }
-    objectEnv.exitscope();
 
     //有无返回语句：getbody得到StmtBlock_class对象，getStmts得到语句链表Stmts
     //查最后一句的类型，要对每种___Stmt写返回类型的函数
@@ -205,7 +204,7 @@ void CallDecl_class::check() {
     Stmt last_stmt = body_stmts->nth(body_stmts->len()-1);
 
     //无返回语句
-    if(last_stmt->checkType() != return_stmt)
+    if(last_stmt->is_what_Stmt() != 4)
     {
         semant_error(this) << "Function " << this->getName() << " must have an overall return statement.\n";
         return;
@@ -236,34 +235,36 @@ void StmtBlock_class::check(Symbol type) {
         //声明的类型不是五种之一？没要求？
         if (curr_vardecl->getType() == Void)
             semant_error(curr_vardecl) << "Var " << curr_vardecl->getName() << " cantnot be of type Void.\n";
-        else if(objectEnv.probe(curr_vardecl->getName()))
+        else if(objectEnv.lookup(curr_vardecl->getName()))
             semant_error(curr_vardecl) << "var " << curr_vardecl->getName() << " was previously declared.\n";
         else
             objectEnv.addid(curr_vardecl->getName(),new Symbol(curr_vardecl->getType()));
     }
-    objectEnv.exitscope();
 
     //语句块后的语句链表，递归调用
     Stmts body_stmts = this->getStmts();
-    /*
+    
     for (int i = body_stmts->first(); body_stmts->more(i); i = body_stmts->next(i))
     {
         Stmt curr_stmt = body_stmts->nth(i);
-        Symbol type = curr_stmt->checkType();
-
-        if(type == break_stmt)
+        int type = curr_stmt->is_what_Stmt();
+        
+        if(type == 6)
             semant_error(curr_stmt)<<"break must be used in a loop sentence.\n";
-        else if(type == continue_stmt)
+        else if(type == 5)
             semant_error(curr_stmt)<< "continue must be used in a loop sentence.\n";
-        else if(type == if_stmt||while_stmt||for_stmt||return_stmt||stmt_block)
+        else if(type == 0||1||2||3||4)
             curr_stmt->check(Int); //除了expr外的6种+遇到StmtBlock会递归调用本函数
+        else if(type == 7)
+            {curr_stmt->checkType();
+            semant_error(curr_stmt)<< type;}
     }
-    */
+    objectEnv.exitscope();
 }
 
 void IfStmt_class::check(Symbol type) {
     if(condition->checkType() != Bool)
-        semant_error(this) << "condition of 'if' does not have type Bool.\n";
+        semant_error(this)<< condition->checkType() << "condition of 'if' does not have type Bool.\n";
     
     thenexpr->check(Int);
     elseexpr->check(Int);
@@ -296,38 +297,24 @@ void BreakStmt_class::check(Symbol type) {
 }
 //自己增的7个函数
 Symbol StmtBlock_class::checkType(){
-    type = stmt_block;
-    return type;
 }
 
 Symbol IfStmt_class::checkType(){
-    type = if_stmt;
-    return type;
 }
 
 Symbol WhileStmt_class::checkType(){
-    type = while_stmt;
-    return type;
 }
 
 Symbol ForStmt_class::checkType(){
-    type = for_stmt;
-    return type;
 }
 
 Symbol ReturnStmt_class::checkType(){
-    type = return_stmt;
-    return type;
 }
 
 Symbol ContinueStmt_class::checkType(){
-    type = continue_stmt;
-    return type;
 }
 
 Symbol BreakStmt_class::checkType(){
-    type = break_stmt;
-    return type;
 }
 
 //函数调用：类里有实参列表了，每个function可以取到形参列表
@@ -335,7 +322,7 @@ Symbol Call_class::checkType(){
     bool is_error = false;
     Symbol returntype;
 
-    if (funcdecl_Table.find(name) != funcdecl_Table.end())
+    if (funcdecl_Table.find(name) == funcdecl_Table.end())
     {
         semant_error(this) << "call undefined function.\n";
         return Void;
@@ -352,132 +339,254 @@ Symbol Call_class::checkType(){
 
         while(actuals->more(k1) && paras->more(k2))
         {
+            
             Actual curr_actual = actuals->nth(k1);
             Variable curr_para = paras->nth(k2);
 
+            //问题出现在curr_actual->checkType()！
+            //测试行：semant_error(this) << curr_para->getType() << ',' << curr_actual->checkType() <<'\n';
+
+            //看if里！！！！写完，注释这个也没用了
             if(!sameType( curr_para->getType(),curr_actual->checkType()) )
             {
-                semant_error(this) << "In call of function " << name << ", type " << curr_actual->checkType() << " of parameter " << curr_para->getName() << " does not conform to declared type " << curr_para->getType() << ".\n";
+                //注释这行没用
+                semant_error(this) << "function " << name << ", parameter " << curr_para->getName() << " should be " << curr_para->getType() << " ,but provided a " <<  curr_actual->checkType()  << ".\n";
                 is_error = true;
             }
-        }
+            k1 = actuals->next(k1);
+            k2 = paras->next(k2);
+            
+            //more:n<链表里个数，返回1，否则0
+            if(actuals->more(k1) xor paras->more(k2))
+            {
+                semant_error(this) << "Function " << name << " called with wrong number of arguments.\n";
+                is_error = true;
+            }
         
-        k1 = actuals->next(k1);
-        k2 = paras->next(k2);
-
-        //more:n<链表里个数，返回1，否则0
-        if(actuals->more(k1) xor paras->more(k2))
-        {
-            semant_error(this) << "Function " << name << " called with wrong number of arguments.\n";
-            is_error = true;
         }
-
         return returntype;
     }
+    
 }
 
-//实参：函数调用里可用吧？和形参要一起看把？那这里用来检查每个expr把
-Symbol Actual_class::checkType(){
 
+Symbol Actual_class::checkType(){
+    Symbol type = expr->checkType();
+    return type;
 }
 
 //写了
 Symbol Assign_class::checkType(){
     Symbol rtype = value->checkType();
+    Symbol ltype = *objectEnv.lookup(lvalue);
 
     //先声明再使用
-    if(objectEnv.probe(lvalue) == 0)
+    if(objectEnv.lookup(lvalue) == 0)
     {
         semant_error(this) << "Assignment to undeclared variable " << lvalue << ".\n";
         type = rtype;
-        return type;
     }
-
-    Symbol ltype = *objectEnv.probe(lvalue);
-
-    //赋值左右类型不同
-    if(!sameType(rtype,ltype))
+    //若有声明，但左右类型不同
+    else if(!sameType(rtype,ltype))
     {
-        semant_error(this) << "Type " << rtype << " of assigned expression does not conform to declared type " << ltype << " of identifier " << lvalue << ".\n";
+        semant_error(this) << "Right value must have type " << ltype << " ,got " << rtype << ".\n";
         type = ltype;
-        return type;
     }
+    return type;
 }
 
 Symbol Add_class::checkType(){
- 
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+        semant_error(this) << "Cannot add a " << type1 << " a " << type2 <<".\n";
+    if(type1==Int && type2==Int)
+        {setType(Int);
+        return type;}
+    else
+        {setType(Float);
+        return type;}
 }
 
 Symbol Minus_class::checkType(){
- 
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+        semant_error(this) << "Cannot add a " << type1 << " a " << type2 <<".\n";
+    if(type1==Int && type2==Int)
+        {setType(Int);
+        return type;}
+    else
+        {setType(Float);
+        return type;}
 }
 
 Symbol Multi_class::checkType(){
- 
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+        semant_error(this) << "Cannot add a " << type1 << " a " << type2 <<".\n";
+    if(type1==Int && type2==Int)
+        {setType(Int);
+        return type;}
+    else
+        {setType(Float);
+        return type;}
 }
 
 Symbol Divide_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+        semant_error(this) << "Cannot add a " << type1 << " a " << type2 <<".\n";
+    if(type1==Int && type2==Int)
+        {setType(Int);
+        return type;}
+    else
+        {setType(Float);
+        return type;}
 }
 
 Symbol Mod_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( type1 != Int || type2 != Int )
+        semant_error(this) << "Cannot mod a " << type1 << " a " << type2 <<".\n";
+    setType(Int);
+    return type;
 }
 
 Symbol Neg_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    if( type1 != Int && type1 != Float)
+        semant_error(this) << "a" <<  type1 << " doesn't have a negative " <<".\n";
+    if(type1==Int)
+        {setType(Int);
+        return type;}
+    else
+        {setType(Float);
+        return type;}
 }
 
 Symbol Lt_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+        semant_error(this) << "Cannot compare a " << type1 << " and a " << type2 <<".\n";
+    setType(Bool);
+    return type;
 }
 
 Symbol Le_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+        semant_error(this) << "Cannot compare a " << type1 << " and a " << type2 <<".\n";
+    setType(Bool);
+    return type;
 }
 
 Symbol Equ_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+        semant_error(this) << "Cannot compare a " << type1 << " and a " << type2 <<".\n";
+    setType(Bool);
+    return type;
 }
 
 Symbol Neq_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float) )
+        if(type1 != Bool || type2 != Bool)
+            semant_error(this) << "Cannot compare a " << type1 << " and a " << type2 <<".\n";
+    setType(Bool);
+    return type;
 }
 
 Symbol Ge_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+        semant_error(this) << "Cannot compare a " << type1 << " and a " << type2 <<".\n";
+    setType(Bool);
+    return type;
 }
 
 Symbol Gt_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+        semant_error(this) << "Cannot compare a " << type1 << " and a " << type2 <<".\n";
+    setType(Bool);
+    return type;
 }
 
 Symbol And_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Bool) || (type2 != Bool))
+        semant_error(this) << "Cannot use && between " << type1 << " and " << type2 <<".\n";
+    setType(Bool);
+    return type;
 }
 
 Symbol Or_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Bool) || (type2 != Bool))
+        semant_error(this) << "Cannot use || between " << type1 << " and " << type2 <<".\n";
+    setType(Bool);
+    return type;
 }
 
 Symbol Xor_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( (type1 != Bool) || (type2 != Bool))
+        if( (type1 != Int) || (type2 != Int))
+            semant_error(this) << "Cannot use ^ between " << type1 << " and " << type2 <<".\n";
+        else 
+            {setType(Int);
+            return type;}
+    else 
+        {setType(Bool);
+        return type;}
 }
 
 Symbol Not_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    if( type1 != Bool )
+        semant_error(this) << "Cannot use ! upon " << type1 <<".\n";
+    setType(Bool);
+    return type;
 }
 
 Symbol Bitand_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( type1 != Int || type2 != Int )
+        semant_error(this) << "Cannot use & between " << type1 << " and " << type2 <<".\n";
+    setType(Int);
+    return type;
 }
 
 Symbol Bitor_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    Symbol type2 = e2->checkType();
+    if( type1 != Int || type2 != Int )
+        semant_error(this) << "Cannot use | between " << type1 << " and " << type2 <<".\n";
+    setType(Int);
+    return type;
 }
 
 Symbol Bitnot_class::checkType(){
-
+    Symbol type1 = e1->checkType();
+    if( type1 != Int )
+        semant_error(this) << "Cannot use unary op ~ upon " << type1 <<".\n";
+    setType(Int);
+    return type;
 }
 
 Symbol Const_int_class::checkType(){
@@ -501,7 +610,14 @@ Symbol Const_bool_class::checkType(){
 }
 
 Symbol Object_class::checkType(){
-
+    if(objectEnv.lookup(var))
+        type = *objectEnv.lookup(var);
+    else 
+    {    
+        semant_error(this) << "object " << var << " has not been defined.\n";
+        type = Void;
+    }
+    return type;
 }
 
 Symbol No_expr_class::checkType(){
