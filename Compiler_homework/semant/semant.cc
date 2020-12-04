@@ -11,6 +11,9 @@ static ostream& error_stream = cerr;
 static int semant_errors = 0;
 static Decl curr_decl = 0;
 
+static Symbol return_type;
+static bool in_loop=false;
+
 typedef SymbolTable<Symbol, Symbol> ObjectEnvironment; // name, type
 ObjectEnvironment objectEnv;
 
@@ -148,15 +151,16 @@ static void check_calls(Decls decls) {
         curr_decl = it->second;
         CallDecl_class* call_decl = static_cast<CallDecl_class*>(curr_decl);
 
-        //形参、返回类型检查
-        call_decl->check();
-        //语句块检查，语句块会嵌套
+        //形参、最外有无返回语句
+        call_decl->check(); //这里面objectEnv.enterscope()
+        //语句块检查，语句块会嵌套，里面有返回类型检查
         StmtBlock func_stmtblock = call_decl->getBody();
-        func_stmtblock->check(Int);
+        func_stmtblock->check(call_decl->getType());//传参：返回值
+        objectEnv.exitscope();
     }
 }
 
-//函数声明：形参、返回值
+//函数声明：形参、声明的返回类型
 static void check_main() {
     //main函数定义
     if(funcdecl_Table.find(Main) == funcdecl_Table.end())
@@ -185,7 +189,7 @@ void VariableDecl_class::check() {
 //函数声明：形参/返回语句！！在check_calls调用，写好了
 void CallDecl_class::check() {
     objectEnv.enterscope();
-    //遍历这个函数声明的每个“x Float”形参
+    //遍历这个函数声明的“x Float”形参
     for (int i = paras->first(); paras->more(i); i = paras->next(i))
     {
         Variable curr_para = paras->nth(i);
@@ -209,19 +213,6 @@ void CallDecl_class::check() {
         semant_error(this) << "Function " << this->getName() << " must have an overall return statement.\n";
         return;
     }
-
-    //有返回语句
-    //返回类型不在范围
-    if(returnType!=Int && returnType!=Float && returnType!=String && returnType!=Bool && returnType!=Void)
-    {
-        semant_error(this) << "Function " << this->getName() << " return illegal type.\n";
-        return;
-    }
-    //不匹配
-    ReturnStmt_class* return_stmt = static_cast<ReturnStmt_class*>(last_stmt);
-    Symbol returnexpr_type = return_stmt->getValue()->checkType();
-    if(!sameType(returnexpr_type,returnType))
-        semant_error(return_stmt) << "Return " << returnexpr_type << ",but need " << returnType<< ".\n";
 }
 
 //语句块检查
@@ -235,7 +226,7 @@ void StmtBlock_class::check(Symbol type) {
         //声明的类型不是五种之一？没要求？
         if (curr_vardecl->getType() == Void)
             semant_error(curr_vardecl) << "Var " << curr_vardecl->getName() << " cantnot be of type Void.\n";
-        else if(objectEnv.lookup(curr_vardecl->getName()))
+        else if(objectEnv.probe(curr_vardecl->getName())) //用lookup会和形参冲突
             semant_error(curr_vardecl) << "var " << curr_vardecl->getName() << " was previously declared.\n";
         else
             objectEnv.addid(curr_vardecl->getName(),new Symbol(curr_vardecl->getType()));
@@ -247,17 +238,26 @@ void StmtBlock_class::check(Symbol type) {
     for (int i = body_stmts->first(); body_stmts->more(i); i = body_stmts->next(i))
     {
         Stmt curr_stmt = body_stmts->nth(i);
-        int type = curr_stmt->is_what_Stmt();
+        int type_id = curr_stmt->is_what_Stmt();
         
-        if(type == 6)
+        if(type_id == 6 && !in_loop)
             semant_error(curr_stmt)<<"break must be used in a loop sentence.\n";
-        else if(type == 5)
+        else if(type_id == 5 && !in_loop)
             semant_error(curr_stmt)<< "continue must be used in a loop sentence.\n";
-        else if(type == 0||1||2||3||4)
-            curr_stmt->check(Int); //除了expr外的6种+遇到StmtBlock会递归调用本函数
-        else if(type == 7)
-            {curr_stmt->checkType();
-            semant_error(curr_stmt)<< type;}
+        else if(type_id == 0||1||2||3||4)
+        {
+            if(type_id == 4)
+            {
+                ReturnStmt_class* return_stmt = static_cast<ReturnStmt_class*>(curr_stmt);
+                return_type = return_stmt->getValue()->checkType();
+                if(!sameType(return_type,type))
+                    semant_error(curr_stmt)<<"Return "<<return_type<<",but need "<<type<<".\n";
+            }
+            else 
+                curr_stmt->check(type); //遇到StmtBlock会递归调用本函数
+        }
+        else if(type_id == 7)
+            curr_stmt->checkType();
     }
     objectEnv.exitscope();
 }
@@ -266,15 +266,16 @@ void IfStmt_class::check(Symbol type) {
     if(condition->checkType() != Bool)
         semant_error(this)<< condition->checkType() << "condition of 'if' does not have type Bool.\n";
     
-    thenexpr->check(Int);
-    elseexpr->check(Int);
+    thenexpr->check(type);
+    elseexpr->check(type);
+
 }
 
 void WhileStmt_class::check(Symbol type) {
     if(condition->checkType() != Bool)
         semant_error(this) << "condition of 'while' does not have type Bool.\n";
 
-    body->check(Int);
+    body->check(type);
 }
 
 void ForStmt_class::check(Symbol type) {
@@ -282,6 +283,7 @@ void ForStmt_class::check(Symbol type) {
         semant_error(this) << "condition of 'if' isn't empty but does not have type Bool.\n";
     initexpr->checkType();
     loopact->checkType();
+    body->check(type);
 }
 
 void ReturnStmt_class::check(Symbol type) {
@@ -343,9 +345,8 @@ Symbol Call_class::checkType(){
             Actual curr_actual = actuals->nth(k1);
             Variable curr_para = paras->nth(k2);
 
-            //问题出现在curr_actual->checkType()！
-            //测试行：semant_error(this) << curr_para->getType() << ',' << curr_actual->checkType() <<'\n';
-
+            //问题出现在curr_actual->checkType()！问题已解决
+            //测试行：semant_error(this) << curr_para->getType() << ',' << curr_actual->checkType() <<'\n'
             //看if里！！！！写完，注释这个也没用了
             if(!sameType( curr_para->getType(),curr_actual->checkType()) )
             {
@@ -364,14 +365,15 @@ Symbol Call_class::checkType(){
             }
         
         }
-        return returntype;
+        type = returntype;
+        return type;
     }
     
 }
 
 
 Symbol Actual_class::checkType(){
-    Symbol type = expr->checkType();
+    type = expr->checkType();
     return type;
 }
 
@@ -392,6 +394,7 @@ Symbol Assign_class::checkType(){
         semant_error(this) << "Right value must have type " << ltype << " ,got " << rtype << ".\n";
         type = ltype;
     }
+    else type = ltype;
     return type;
 }
 

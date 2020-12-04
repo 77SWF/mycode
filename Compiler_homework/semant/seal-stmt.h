@@ -30,6 +30,9 @@ public:
 	virtual void dump_with_types(ostream&,int) = 0; 
 	virtual void dump(ostream&,int) = 0;
 	virtual void check(Symbol) = 0;
+	//自己增
+	virtual Symbol checkType() = 0;
+	virtual int is_what_Stmt() = 0;
 };
 
 class StmtBlock_class : public Stmt_class {
@@ -49,6 +52,9 @@ public:
 	void check(Symbol);
 	void dump(ostream& , int );
 	void dump_with_types(ostream&,int);
+	Symbol checkType();
+	Symbol type; 
+	int is_what_Stmt(){return 0; }
 };
 
 class IfStmt_class : public Stmt_class {
@@ -69,6 +75,9 @@ public:
 	void check(Symbol);
 	void dump(ostream& stream, int n);
 	void dump_with_types(ostream&,int);
+	Symbol checkType();
+	Symbol type;      
+	int is_what_Stmt(){return 1; }
 };
 
 
@@ -89,6 +98,9 @@ public:
 	void check(Symbol);
 	void dump(ostream& stream, int n);
 	void dump_with_types(ostream&,int);
+	Symbol checkType();
+	Symbol type;
+	int is_what_Stmt(){return 2; }
 };
 
 class ForStmt_class : public Stmt_class {
@@ -110,6 +122,9 @@ public:
     Stmt copy_Stmt();
 	void dump(ostream& stream, int n);
 	void dump_with_types(ostream&,int);
+	Symbol checkType();
+	Symbol type;
+	int is_what_Stmt(){return 3; }
 };
 
 
@@ -126,6 +141,9 @@ public:
 	void check(Symbol);
     void dump_with_types(ostream&,int);
     void dump(ostream& stream, int n);
+	Symbol checkType();
+	Symbol type;    
+	int is_what_Stmt(){return 4; }  
 };
 
 class ContinueStmt_class : public Stmt_class {
@@ -135,6 +153,9 @@ public:
 	void check(Symbol);
     void dump_with_types(ostream&,int);
     void dump(ostream& stream, int n);
+	Symbol checkType();
+	Symbol type;
+	int is_what_Stmt(){return 5; }
 };
 
 
@@ -145,6 +166,9 @@ public:
 	void check(Symbol);
     void dump_with_types(ostream&,int);
     void dump(ostream& stream, int n);
+	Symbol checkType();
+	Symbol type;
+	int is_what_Stmt(){return 6; }
 };
 
 typedef class Program_class *Program;
