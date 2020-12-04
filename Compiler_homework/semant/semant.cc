@@ -244,18 +244,25 @@ void StmtBlock_class::check(Symbol type) {
             semant_error(curr_stmt)<<"break must be used in a loop sentence.\n";
         else if(type_id == 5 && !in_loop)
             semant_error(curr_stmt)<< "continue must be used in a loop sentence.\n";
-        else if(type_id == 0||1||2||3||4)
+        else if(type_id == 4)
         {
-            if(type_id == 4)
-            {
-                ReturnStmt_class* return_stmt = static_cast<ReturnStmt_class*>(curr_stmt);
-                return_type = return_stmt->getValue()->checkType();
-                if(!sameType(return_type,type))
-                    semant_error(curr_stmt)<<"Return "<<return_type<<",but need "<<type<<".\n";
-            }
-            else 
-                curr_stmt->check(type); //遇到StmtBlock会递归调用本函数
+            ReturnStmt_class* return_stmt = static_cast<ReturnStmt_class*>(curr_stmt);
+            return_type = return_stmt->getValue()->checkType();
+
+            //应该用不到，语法已规定
+            if(return_type!=Int && return_type!=String && return_type!=Void && return_type!=Float && return_type!=Bool)
+                semant_error(curr_stmt)<<"Return undefined type.\n";
+
+            if(!sameType(return_type,type))
+                semant_error(curr_stmt)<<"Return "<<return_type<<",but need "<<type<<".\n";
         }
+        else if(type_id == 2 || type_id == 3) 
+        {
+            in_loop = true;
+            curr_stmt->check(type);
+        }
+        else if(type_id == 0||1)
+            curr_stmt->check(type); //遇到StmtBlock会递归调用本函数
         else if(type_id == 7)
             curr_stmt->checkType();
     }
@@ -276,6 +283,7 @@ void WhileStmt_class::check(Symbol type) {
         semant_error(this) << "condition of 'while' does not have type Bool.\n";
 
     body->check(type);
+    in_loop = false;
 }
 
 void ForStmt_class::check(Symbol type) {
@@ -324,9 +332,23 @@ Symbol Call_class::checkType(){
     bool is_error = false;
     Symbol returntype;
 
-    if (funcdecl_Table.find(name) == funcdecl_Table.end())
+    if(name == print)
     {
-        semant_error(this) << "call undefined function.\n";
+        if(actuals->len()==0)
+            semant_error(this)<<"printf() must has at last one parameter of type String.\n";
+        else
+        {
+            int i = actuals->first();
+            Actual first_actual = actuals->nth(i);
+            if(first_actual->checkType() != String)
+            semant_error(first_actual)<<"printf()'s first parameter must be of type String.\n";
+        }
+        type = Void;
+        return type;
+    }
+    else if (funcdecl_Table.find(name) == funcdecl_Table.end())
+    {
+        semant_error(this)<< "Function " << name << " has not been defined.\n";
         return Void;
     }
     else
