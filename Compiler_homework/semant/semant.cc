@@ -13,6 +13,7 @@ static Decl curr_decl = 0;
 
 static Symbol return_type;
 static bool in_loop=false;
+static bool is_object_defined=true;
 
 typedef SymbolTable<Symbol, Symbol> ObjectEnvironment; // name, type
 ObjectEnvironment objectEnv;
@@ -188,6 +189,12 @@ void VariableDecl_class::check() {
 
 //函数声明：形参/返回语句！！在check_calls调用，写好了
 void CallDecl_class::check() {
+    if(paras->len()>6)
+    {
+        semant_error(this) << "Function " << name << " has more than 6 parameters.\n";
+        return;
+    }    
+
     objectEnv.enterscope();
     //遍历这个函数声明的“x Float”形参
     for (int i = paras->first(); paras->more(i); i = paras->next(i))
@@ -253,7 +260,7 @@ void StmtBlock_class::check(Symbol type) {
             if(return_type!=Int && return_type!=String && return_type!=Void && return_type!=Float && return_type!=Bool)
                 semant_error(curr_stmt)<<"Return undefined type.\n";
 
-            if(!sameType(return_type,type))
+            if(is_object_defined && !sameType(return_type,type))
                 semant_error(curr_stmt)<<"Return "<<return_type<<",but need "<<type<<".\n";
         }
         else if(type_id == 2 || type_id == 3) 
@@ -423,7 +430,7 @@ Symbol Assign_class::checkType(){
 Symbol Add_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+    if( ((type1 != Int && type1 != Float) || (type2 != Int && type2 != Float)) && is_object_defined)
         semant_error(this) << "Cannot add a " << type1 << " a " << type2 <<".\n";
     if(type1==Int && type2==Int)
         {setType(Int);
@@ -436,8 +443,8 @@ Symbol Add_class::checkType(){
 Symbol Minus_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
-        semant_error(this) << "Cannot add a " << type1 << " a " << type2 <<".\n";
+    if( ((type1 != Int && type1 != Float) || (type2 != Int && type2 != Float)) && is_object_defined )
+        semant_error(this) << "Cannot minus a " << type1 << " a " << type2 <<".\n";
     if(type1==Int && type2==Int)
         {setType(Int);
         return type;}
@@ -449,8 +456,8 @@ Symbol Minus_class::checkType(){
 Symbol Multi_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
-        semant_error(this) << "Cannot add a " << type1 << " a " << type2 <<".\n";
+    if( ((type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))  && is_object_defined )
+        semant_error(this) << "Cannot multiply a " << type1 << " a " << type2 <<".\n";
     if(type1==Int && type2==Int)
         {setType(Int);
         return type;}
@@ -462,8 +469,8 @@ Symbol Multi_class::checkType(){
 Symbol Divide_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
-        semant_error(this) << "Cannot add a " << type1 << " a " << type2 <<".\n";
+    if(( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float)) && is_object_defined)
+        semant_error(this) << "Cannot divide a " << type1 << " a " << type2 <<".\n";
     if(type1==Int && type2==Int)
         {setType(Int);
         return type;}
@@ -475,7 +482,7 @@ Symbol Divide_class::checkType(){
 Symbol Mod_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( type1 != Int || type2 != Int )
+    if( (type1 != Int || type2 != Int) && is_object_defined )
         semant_error(this) << "Cannot mod a " << type1 << " a " << type2 <<".\n";
     setType(Int);
     return type;
@@ -483,7 +490,7 @@ Symbol Mod_class::checkType(){
 
 Symbol Neg_class::checkType(){
     Symbol type1 = e1->checkType();
-    if( type1 != Int && type1 != Float)
+    if( (type1 != Int && type1 != Float) && is_object_defined)
         semant_error(this) << "a" <<  type1 << " doesn't have a negative " <<".\n";
     if(type1==Int)
         {setType(Int);
@@ -496,7 +503,7 @@ Symbol Neg_class::checkType(){
 Symbol Lt_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+    if( ((type1 != Int && type1 != Float) || (type2 != Int && type2 != Float)) && is_object_defined)
         semant_error(this) << "Cannot compare a " << type1 << " and a " << type2 <<".\n";
     setType(Bool);
     return type;
@@ -505,7 +512,7 @@ Symbol Lt_class::checkType(){
 Symbol Le_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+    if( ((type1 != Int && type1 != Float) || (type2 != Int && type2 != Float)) && is_object_defined)
         semant_error(this) << "Cannot compare a " << type1 << " and a " << type2 <<".\n";
     setType(Bool);
     return type;
@@ -514,7 +521,7 @@ Symbol Le_class::checkType(){
 Symbol Equ_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+    if( ((type1 != Int && type1 != Float) || (type2 != Int && type2 != Float)) && is_object_defined)
         semant_error(this) << "Cannot compare a " << type1 << " and a " << type2 <<".\n";
     setType(Bool);
     return type;
@@ -523,7 +530,7 @@ Symbol Equ_class::checkType(){
 Symbol Neq_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float) )
+    if( ((type1 != Int && type1 != Float) || (type2 != Int && type2 != Float)) && is_object_defined )
         if(type1 != Bool || type2 != Bool)
             semant_error(this) << "Cannot compare a " << type1 << " and a " << type2 <<".\n";
     setType(Bool);
@@ -533,7 +540,7 @@ Symbol Neq_class::checkType(){
 Symbol Ge_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+    if( ((type1 != Int && type1 != Float) || (type2 != Int && type2 != Float)) && is_object_defined)
         semant_error(this) << "Cannot compare a " << type1 << " and a " << type2 <<".\n";
     setType(Bool);
     return type;
@@ -542,7 +549,7 @@ Symbol Ge_class::checkType(){
 Symbol Gt_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( (type1 != Int && type1 != Float) || (type2 != Int && type2 != Float))
+    if( ((type1 != Int && type1 != Float) || (type2 != Int && type2 != Float)) && is_object_defined)
         semant_error(this) << "Cannot compare a " << type1 << " and a " << type2 <<".\n";
     setType(Bool);
     return type;
@@ -551,7 +558,7 @@ Symbol Gt_class::checkType(){
 Symbol And_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( (type1 != Bool) || (type2 != Bool))
+    if( ((type1 != Bool) || (type2 != Bool)) && is_object_defined)
         semant_error(this) << "Cannot use && between " << type1 << " and " << type2 <<".\n";
     setType(Bool);
     return type;
@@ -560,7 +567,7 @@ Symbol And_class::checkType(){
 Symbol Or_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( (type1 != Bool) || (type2 != Bool))
+    if( ((type1 != Bool) || (type2 != Bool)) && is_object_defined)
         semant_error(this) << "Cannot use || between " << type1 << " and " << type2 <<".\n";
     setType(Bool);
     return type;
@@ -570,7 +577,7 @@ Symbol Xor_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
     if( (type1 != Bool) || (type2 != Bool))
-        if( (type1 != Int) || (type2 != Int))
+        if( ((type1 != Int) || (type2 != Int)) && is_object_defined)
             semant_error(this) << "Cannot use ^ between " << type1 << " and " << type2 <<".\n";
         else 
             {setType(Int);
@@ -582,7 +589,7 @@ Symbol Xor_class::checkType(){
 
 Symbol Not_class::checkType(){
     Symbol type1 = e1->checkType();
-    if( type1 != Bool )
+    if( type1 != Bool && is_object_defined )
         semant_error(this) << "Cannot use ! upon " << type1 <<".\n";
     setType(Bool);
     return type;
@@ -591,7 +598,7 @@ Symbol Not_class::checkType(){
 Symbol Bitand_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( type1 != Int || type2 != Int )
+    if( (type1 != Int || type2 != Int) && is_object_defined )
         semant_error(this) << "Cannot use & between " << type1 << " and " << type2 <<".\n";
     setType(Int);
     return type;
@@ -600,7 +607,7 @@ Symbol Bitand_class::checkType(){
 Symbol Bitor_class::checkType(){
     Symbol type1 = e1->checkType();
     Symbol type2 = e2->checkType();
-    if( type1 != Int || type2 != Int )
+    if( (type1 != Int || type2 != Int) && is_object_defined )
         semant_error(this) << "Cannot use | between " << type1 << " and " << type2 <<".\n";
     setType(Int);
     return type;
@@ -608,7 +615,7 @@ Symbol Bitor_class::checkType(){
 
 Symbol Bitnot_class::checkType(){
     Symbol type1 = e1->checkType();
-    if( type1 != Int )
+    if( type1 != Int && is_object_defined )
         semant_error(this) << "Cannot use unary op ~ upon " << type1 <<".\n";
     setType(Int);
     return type;
@@ -636,11 +643,15 @@ Symbol Const_bool_class::checkType(){
 
 Symbol Object_class::checkType(){
     if(objectEnv.lookup(var))
+    {
         type = *objectEnv.lookup(var);
+        is_object_defined=true;
+    }    
     else 
     {    
         semant_error(this) << "object " << var << " has not been defined.\n";
         type = Void;
+        is_object_defined=false;
     }
     return type;
 }
