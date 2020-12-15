@@ -348,7 +348,12 @@ Symbol Call_class::checkType(){
             int i = actuals->first();
             Actual first_actual = actuals->nth(i);
             if(first_actual->checkType() != String)
-            semant_error(first_actual)<<"printf()'s first parameter must be of type String.\n";
+                semant_error(first_actual)<<"printf()'s first parameter must be of type String.\n";
+            for (int i = actuals->first(); actuals->more(i); i = actuals->next(i))
+                {
+                    Actual cur_actual = actuals->nth(i);
+                    cur_actual->checkType();
+                }
         }
         type = Void;
         return type;
