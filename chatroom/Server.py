@@ -31,7 +31,7 @@ class MyChat_Server(object):
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)           #创建TCP Socket
         self.s.bind((self.addr, self.port))                                 #将套接字绑定到地址
-        print("Initial Successfully!")
+        print("Server listening on " + str(port) + "...")
 
     def portlisten(self):
         """
@@ -162,7 +162,7 @@ class MyChat_Server(object):
                        "info": "userlogin",
                        "name": Username,
                        "time": time.time(),
-                       "msg": "Welcome {name} to MyChat~".format(name=Username)}
+                       "msg": "Welcome {name} enters Chatting Room~".format(name=Username)}
 
         # 遍历已有的每个和服务器的连接
         for c in self.connections:
@@ -249,7 +249,7 @@ class MyChat_Server(object):
                 "info": "userexit",
                 "name": Username,
                 "time": time.time(),
-                "msg": "{name} Exits MyChat~".format(name=Username)}
+                "msg": "{name} exits Chatting Room~".format(name=Username)}
         #给其他所有连接发送信息：
         for c in self.connections:
             c.send(str(back).encode()) #send的参数是str，encode默认UTF-8，返回编码后的字符串。
