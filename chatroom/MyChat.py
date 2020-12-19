@@ -240,7 +240,7 @@ class Ui_chatWindow(object):
         self.centralwidget.setObjectName("centralwidget")
 
         self.msg_frame_group = QtWidgets.QTextEdit(self.centralwidget)
-        self.msg_frame_group.setGeometry(QtCore.QRect(340, -20, 1161, 431))
+        self.msg_frame_group.setGeometry(QtCore.QRect(340, 0, 1161, 411))
         self.msg_frame_group.setStyleSheet("border-image: url(:/chat/images/msg.png);")
         self.msg_frame_group.setReadOnly(True)
         self.msg_frame_group.setObjectName("msg_frame_group")
@@ -255,12 +255,14 @@ class Ui_chatWindow(object):
         self.send_buttom.setGeometry(QtCore.QRect(1350, 713, 90, 40))
         self.send_buttom.setStyleSheet("border-image: url(:/chat/images/friend_list.png);")
         self.send_buttom.setObjectName("send_buttom")
+        self.send_buttom.clicked.connect(self.send_buttom_clicked)
 
         self.emoji_buttom = QtWidgets.QPushButton(self.centralwidget)
         self.emoji_buttom.setGeometry(QtCore.QRect(359, 421, 21, 21))
         self.emoji_buttom.setStyleSheet("border-image: url(:/chat/images/emojibutton.png);")
         self.emoji_buttom.setText("")
         self.emoji_buttom.setObjectName("emoji_buttom")
+        self.emoji_buttom.clicked.connect(self.emoji_buttom_clicked)
 
         self.photo_buttom = QtWidgets.QPushButton(self.centralwidget)
         self.photo_buttom.setGeometry(QtCore.QRect(390, 420, 21, 21))
@@ -275,7 +277,7 @@ class Ui_chatWindow(object):
         self.file__buttom.setObjectName("file__buttom")
 
         self.emoji_table = QtWidgets.QTableWidget(self.centralwidget)
-        self.emoji_table.setGeometry(QtCore.QRect(360, 319, 300, 90))
+        self.emoji_table.setGeometry(QtCore.QRect(360, 290, 120, 120))
         self.emoji_table.setStyleSheet("border-image: url(:/chat/images/emoji_back.png);")
         self.emoji_table.setFrameShape(QtWidgets.QFrame.Box)
         self.emoji_table.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -293,6 +295,24 @@ class Ui_chatWindow(object):
         self.emoji_table.verticalHeader().setVisible(False)
         self.emoji_table.verticalHeader().setSortIndicatorShown(False)
         self.emoji_table.verticalHeader().setStretchLastSection(False)
+        self.emoji_table.hide()
+        self.emoji_table.cellClicked.connect(self.emoji_table_clicked)
+        self.emoji_table_show = False
+
+        # 放置默认表情图片(参考)
+        for i in range(9):
+            icon = QtWidgets.QLabel()
+            icon.setMargin(4)
+            movie = QtGui.QMovie()
+            movie.setScaledSize(QtCore.QSize(30, 30))
+            movie.setFileName("./images/emoji/"+str(i)+".gif")
+            movie.start()
+            # icon放的表情
+            icon.setMovie(movie)
+            # 在第几行第几列放icon
+            self.emoji_table.setCellWidget(int(i/3), i%3, icon)
+            self.emoji_table.setColumnWidth(i%3, 40)          # 设置列的宽度
+            self.emoji_table.setRowHeight(int(i/3), 40)       # 设置行的高度
 
         self.userlist_logined = QtWidgets.QListWidget(self.centralwidget)
         self.userlist_logined.setGeometry(QtCore.QRect(150, 40, 161, 691))
@@ -318,8 +338,14 @@ class Ui_chatWindow(object):
         self.group_chat_buttom = QtWidgets.QPushButton(self.centralwidget)
         self.group_chat_buttom.setGeometry(QtCore.QRect(150, 10, 161, 16))
         self.group_chat_buttom.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.group_chat_buttom.setStyleSheet("border-image: url(:/chat/images/friend_list.png);")
+        self.group_chat_buttom.setStyleSheet(
+            "QPushButton{border-image: url(:/chat/images/friend_list.png);text-align: left}"#按键前景色 
+            "QPushButton:hover{border-image: url(:/chat/images/click.png)}" #光标移动到上面后的前景色
+            # 无效，未解决
+            "QPushButton:pressed{border-image: url(:/chat/images/click.png)}" #按下时的样式
+            )
         self.group_chat_buttom.setObjectName("group_chat_buttom")
+        self.group_chat_buttom.clicked.connect(self.group_chat_buttom_clicked)
 
         self.graphicsView.raise_()
         self.msg_frame_group.raise_()
@@ -345,7 +371,8 @@ class Ui_chatWindow(object):
 
     def retranslateUi(self, chatWindow):
         _translate = QtCore.QCoreApplication.translate
-        chatWindow.setWindowTitle(_translate("chatWindow", "Chatting"))
+        self.windowtitle = "Chatting(user: " + self.Username + ")"
+        chatWindow.setWindowTitle(_translate("chatWindow", self.windowtitle))
         self.msg_frame_group.setHtml(_translate("chatWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n""<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n""p, li { white-space: pre-wrap; }\n""</style></head><body style=\" font-family:\'SimSun\'; font-size:9pt; font-weight:400; font-style:normal;\">\n""<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"))
         self.send_buttom.setText(_translate("chatWindow", "发送(S)"))
         __sortingEnabled = self.userlist_logined.isSortingEnabled()
@@ -354,34 +381,48 @@ class Ui_chatWindow(object):
         self.group_chat_buttom.setText(_translate("chatWindow", "群 聊"))
 
     def username_double_clicked(self):
-        self.msg_frame_group.hide()
-        for username in self.msg_frames_private:
-            self.msg_frames_private[username].hide()
-        user_clicked = self.userlist_logined.currentItem().text()
-        if user_clicked == self.Username:
+        username_clicked = self.userlist_logined.currentItem().text()
+        # 点击自己
+        if username_clicked == self.Username:
             return
-        elif user_clicked in self.msg_frames_private:
-            self.msg_frames_private[user_clicked].show()
-            self.send_to_user = user_clicked
-        elif user_clicked not in self.msg_frames_private:
-            self.msg_frames_private[user_clicked] = QtWidgets.QTextEdit(self.centralwidget)
-            self.msg_frames_private[user_clicked].setGeometry(QtCore.QRect(340, -20, 1161, 431))
-            self.msg_frames_private[user_clicked].setStyleSheet("border-image: url(:/chat/images/msg.png);")
-            self.msg_frames_private[user_clicked].setReadOnly(True)
-            self.msg_frames_private[user_clicked].setObjectName("msg_frame_private")
-            self.send_to_user = user_clicked
+        # 点击用户已打开过消息框，显示
+        elif username_clicked in self.msg_frames_private:
+            # 隐藏群聊消息框
+            self.msg_frame_group.hide()
+            # 隐藏所有私聊消息框
+            for username in self.msg_frames_private:
+                self.msg_frames_private[username].hide()
+            self.msg_frames_private[username_clicked].show()
+            self.send_to_user = username_clicked
+        # 点击用户未打开过消息框
+        elif username_clicked not in self.msg_frames_private:
+            # 新建
+            self.msg_frames_private[username_clicked] = QtWidgets.QTextEdit(self.centralwidget)
+            self.msg_frames_private[username_clicked].setGeometry(QtCore.QRect(340, 0, 1161, 411))
+            self.msg_frames_private[username_clicked].setStyleSheet("border-image: url(:/chat/images/msg.png);")
+            self.msg_frames_private[username_clicked].setReadOnly(True)
+            self.msg_frames_private[username_clicked].setObjectName("msg_frame_private")
+            # 显示
+            self.msg_frames_private[username_clicked].show()
+            self.send_to_user = username_clicked
+            # 隐藏其他
+            self.msg_frame_group.hide()
+            for username in self.msg_frames_private:
+                self.msg_frames_private[username].hide()
 
-    def recv(self):
-        '''
-        用于将接收到的消息显示出来
-        '''
+    # 显示从服务器接受的消息
+    def display_recv_msgs(self):
         while True:
+            # 客户端 "用户消息" list非空
             while len(client.usermsg):
                 msg_recv = client.usermsg.pop()
                 msgtime = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(msg_recv["time"]))
+                # 文字消息
                 if msg_recv["mtype"] == "msg":
                     msg_recv["msg"] = msg_recv["msg"].replace("\n","\n  ")
-                    if msg_recv["name"] == self.Username:       #从本地发送的消息打印
+                    # 自己发送，看发给谁destname：绿色
+                    if msg_recv["name"] == self.Username:
+                        # 群发
                         if msg_recv["destname"] == "all":
                             self.msg_frame_group.moveCursor(QtGui.QTextCursor.End)
                             self.msg_frame_group.setTextColor(Qt.green)
@@ -389,18 +430,18 @@ class Ui_chatWindow(object):
                                 " " + msg_recv["name"] + "  " + msgtime + "\n  ")
                             self.msg_frame_group.setTextColor(Qt.black)
                             self.msg_frame_group.insertPlainText(msg_recv["msg"] + "\n")
+                        # 私聊
                         else:
-                            for i in self.prtbutton:
-                                print(msg_recv["destname"])
-                                print(self.destprtbutton[i])
-                                if msg_recv["destname"] == self.destprtbutton[i]:
-                                    self.buttontotext[i].moveCursor(QtGui.QTextCursor.End)
-                                    self.buttontotext[i].setTextColor(Qt.green)
-                                    self.buttontotext[i].insertPlainText(
-                                        " " + msg_recv["name"] + "  " + msgtime + "\n  ")
-                                    self.buttontotext[i].setTextColor(Qt.black)
-                                    self.buttontotext[i].insertPlainText(msg_recv["msg"] + "\n")
-                    elif msg_recv["destname"] in (self.Username, "all"):        #本地接收到的消息打印
+                            curent_private_msg_frame = self.msg_frames_private[msg_recv["destname"]]
+                            curent_private_msg_frame.moveCursor(QtGui.QTextCursor.End)
+                            curent_private_msg_frame.setTextColor(Qt.green)
+                            curent_private_msg_frame.insertPlainText(
+                                " " + msg_recv["name"] + "  " + msgtime + "\n  ")
+                            curent_private_msg_frame.setTextColor(Qt.black)
+                            curent_private_msg_frame.insertPlainText(msg_recv["msg"] + "\n")
+                    # 接受的,看谁发送的name：蓝色
+                    elif msg_recv["destname"] in (self.Username, "all"): 
+                        # 群发
                         if msg_recv["destname"] == "all":
                             self.msg_frame_group.moveCursor(QtGui.QTextCursor.End)
                             self.msg_frame_group.setTextColor(Qt.blue)
@@ -408,26 +449,18 @@ class Ui_chatWindow(object):
                                 " " + msg_recv["name"] + "  " + msgtime + "\n  ")
                             self.msg_frame_group.setTextColor(Qt.black)
                             self.msg_frame_group.insertPlainText(msg_recv["msg"] + "\n")
+                        # 私聊
                         else:
-                            for i in self.prtbutton:
-                                if self.destprtbutton[i] == msg_recv["name"]:
-                                    self.buttontotext[i].moveCursor(QtGui.QTextCursor.End)
-                                    self.buttontotext[i].setTextColor(Qt.blue)
-                                    self.buttontotext[i].insertPlainText(
-                                        " " + msg_recv["name"] + "  " + msgtime + "\n  ")
-                                    self.buttontotext[i].setTextColor(Qt.black)
-                                    self.buttontotext[i].insertPlainText(msg_recv["msg"] + "\n")
-                                    break
-                                elif self.destprtbutton[i] == None:
-                                    self.destprtbutton[i] = msg_recv["name"]
-                                    i.setText(msg_recv["name"])
-                                    self.buttontotext[i].moveCursor(QtGui.QTextCursor.End)
-                                    self.buttontotext[i].setTextColor(Qt.blue)
-                                    self.buttontotext[i].insertPlainText(
-                                        " " + msg_recv["name"] + "  " + msgtime + "\n  ")
-                                    self.buttontotext[i].setTextColor(Qt.black)
-                                    self.buttontotext[i].insertPlainText(msg_recv["msg"] + "\n")
-                                    break
+                            who_send = msg_recv["name"]
+                            if who_send in self.msg_frames_private:
+                                curent_private_msg_frame = self.msg_frames_private[who_send]
+                                curent_private_msg_frame.moveCursor(QtGui.QTextCursor.End)
+                                curent_private_msg_frame.setTextColor(Qt.blue)
+                                curent_private_msg_frame.insertPlainText(
+                                    " " + msg_recv["name"] + "  " + msgtime + "\n  ")
+                                curent_private_msg_frame.setTextColor(Qt.black)
+                                curent_private_msg_frame.insertPlainText(msg_recv["msg"] + "\n")
+                # 表情
                 elif msg_recv["mtype"] == "emoji":
                     if msg_recv["name"] == self.Username:  # 从本地发送的消息打印
                         if msg_recv["destname"] == "all":
@@ -641,7 +674,6 @@ class Ui_chatWindow(object):
                 if msg_recv["info"] == "userlogin":
                     if msg_recv["name"] not in client.userlist:
                         client.userlist.append(msg_recv["name"])
-                        print("有人登录")
                         self.userlist_logined.clear()
                         self.userlist_logined.addItems(client.userlist)
                 elif msg_recv["info"] == "userexit":
@@ -652,10 +684,43 @@ class Ui_chatWindow(object):
                 self.msg_frame_group.moveCursor(QtGui.QTextCursor.End)
                 self.msg_frame_group.setTextColor(Qt.gray)
                 self.msg_frame_group.insertPlainText("      "+msg_recv["msg"]+"\n")
-
     def main(self):
-        func1 = threading.Thread(target=self.recv)
+        func1 = threading.Thread(target=self.display_recv_msgs)
         func1.start()
+
+    # 点击群聊
+    def group_chat_buttom_clicked(self):
+        # 隐藏所有私聊消息框
+        for username in self.msg_frames_private:
+            self.msg_frames_private[username].hide()
+        # 显示群聊消息框
+        self.msg_frame_group.show()
+        self.send_to_user = "all"
+
+    # 点击发送
+    def send_buttom_clicked(self):
+        text_sent = self.edit_frame.toPlainText()
+        # 无效，尚未解决
+        if len(text_sent) == 0:
+            self.send_buttom.setToolTip("不能发送空白信息")
+        else:
+            client.send_Msg(text_sent,self.send_to_user)
+            self.edit_frame.clear()
+
+    # 点击，显示/隐藏表情面板
+    def emoji_buttom_clicked(self):
+        if(self.emoji_table_show == False):
+            self.emoji_table.show()
+            self.emoji_table_show = True
+        else:
+            self.emoji_table.hide()
+            self.emoji_table_show = False
+        
+    def emoji_table_clicked(self,row,col):
+        client.send_Msg(row*3+col,self.send_to_user,"emoji")
+        self.emoji_table.hide()
+
+
 
 def login_button_clicked(ui,loginWindow):
         '''
@@ -678,11 +743,6 @@ def login_button_clicked(ui,loginWindow):
                 chatwindow_ui = Ui_chatWindow(username,loginWindow.chatwindow)
                 chatwindow_ui.main()
                 loginWindow.chatwindow.show()
-                # loginWindow.chatwindow.show()
-                
-                # 点击"群聊"
-                #chatwindow_ui.group_chat_buttom.clicked.connect(
-                #    partial(group_chat_buttom_clicked,chatwindow_ui,loginWindow.chatwindow))
 
             elif client.loginBack["info"] == "loginFail":
                 QMessageBox.about(loginWindow,"error","账号或密码错误！请重新输入！")
