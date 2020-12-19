@@ -230,7 +230,6 @@ class Ui_chatWindow(object):
             if username in self.msg_frames_private or username == self.Username:
                 continue
             else:
-                print("1111")
                 self.msg_frames_private[username] = QtWidgets.QTextEdit(self.centralwidget)
                 self.msg_frames_private[username].setGeometry(QtCore.QRect(340, 0, 1161, 411))
                 self.msg_frames_private[username].setStyleSheet("border-image: url(:/chat/images/msg.png);")
@@ -306,7 +305,8 @@ class Ui_chatWindow(object):
             # 隐藏所有私聊消息框
             for username in self.msg_frames_private:
                 self.msg_frames_private[username].hide()
-            self.msg_frames_private[username_clicked].insertPlainText("you are chatting with {name}~\n".format(name=username))
+            self.msg_frames_private[username_clicked].setTextColor(Qt.gray)
+            self.msg_frames_private[username_clicked].insertPlainText("------you are chatting with {name}~------n".format(name=username))
             self.msg_frames_private[username_clicked].show()
             self.send_to_user = username_clicked
         # 点击用户未打开过消息框
@@ -440,7 +440,7 @@ class Ui_chatWindow(object):
                                 image_show.setWidth(28)
                                 tcursor.insertImage(image_show)
                                 curent_private_msg_frame.insertPlainText("\n")
-                # 图片/文件
+                # 表情包/文件
                 else:
                     # 发送的
                     if msg_recv["name"] == self.Username: 
@@ -460,46 +460,70 @@ class Ui_chatWindow(object):
                             # 发送图片
                             if msg_recv["mtype"] in (".png", ".gif", ".jpg"):
                                 image_show.setName(path)
+                                image_show.setHeight(100)
+                                image_show.setWidth(100)
+                                tcursor.insertImage(image_show)
+                                self.msg_frame_group.insertPlainText("(预览)\n")
+                                image_show.setName("./images_src/success.png")
+                                image_show.setHeight(30)
+                                image_show.setWidth(30)
+                                tcursor.insertImage(image_show)
+                                self.msg_frame_group.insertPlainText("图片\"{filename}{filetype}\"已发送!\n".format(filename=msg_recv["fname"],filetype=msg_recv["mtype"]))
+                            elif msg_recv["mtype"] == "biaoqingbao":
+                                image_show.setName(path)
                                 image_show.setHeight(60)
                                 image_show.setWidth(60)
                                 tcursor.insertImage(image_show)
+                                self.msg_frame_group.insertPlainText("\n")
                             # 发送文件
                             else:
                                 image_show.setName("./images_src/success.png")
                                 image_show.setHeight(30)
                                 image_show.setWidth(30)
                                 tcursor.insertImage(image_show)
-                                self.msg_frame_group.insertPlainText("文件{filename}已发送!\n".format(msg_recv["fname"]))
+                                self.msg_frame_group.insertPlainText("文件\"{filename}{type}\"已发送!\n".format(filename=msg_recv["fname"],type=msg_recv["mtype"]))
                         # 私聊
                         else:
-                            for i in self.prtbutton:
-                                print(msg_recv["destname"])
-                                print(self.destprtbutton[i])
-                                if msg_recv["destname"] == self.destprtbutton[i]:
-                                    self.buttontotext[i].moveCursor(QtGui.QTextCursor.End)
-                                    self.buttontotext[i].setTextColor(Qt.green)
-                                    self.buttontotext[i].insertPlainText(
-                                        " " + msg_recv["name"] + "  " + msgtime + "\n  ")
-                                    path = "./" + self.Username + "/" + msg_recv["fname"] + msg_recv["mtype"]
-                                    with open(path, "wb") as f:
-                                        f.write(base64.b64decode(msg_recv["msg"]))
-                                        f.close()
-                                    tcursor = self.buttontotext[i].textCursor()
-                                    image_show = QtGui.QTextImageFormat()
-                                    if msg_recv["mtype"] in (".png", ".gif", ".jpg"):
-                                        image_show.setName(path)
-                                        image_show.setHeight(60)
-                                        image_show.setWidth(60)
-                                        tcursor.insertImage(image_show)
-                                    else:
-                                        image_show.setName("./images/style/MyChat/filebutton.png")
-                                        image_show.setHeight(30)
-                                        image_show.setWidth(30)
-                                        tcursor.insertImage(image_show)
-                                        self.buttontotext[i].insertPlainText("文件已保存在："+path)
-                                    self.buttontotext[i].insertPlainText("\n")
+                            curent_private_msg_frame = self.msg_frames_private[msg_recv["destname"]]
+                            curent_private_msg_frame.moveCursor(QtGui.QTextCursor.End)
+                            curent_private_msg_frame.setTextColor(Qt.green)
+                            curent_private_msg_frame.insertPlainText(
+                                " " + msg_recv["name"] + "  " + msgtime + "\n  ")
+                            # 本地发送文件保存到用户文件夹
+                            path = "./" + self.Username + "/" + msg_recv["fname"] + msg_recv["mtype"]
+                            with open(path,"wb") as f:
+                                f.write(base64.b64decode(msg_recv["msg"]))
+                                f.close()
+                            tcursor = curent_private_msg_frame.textCursor()
+                            image_show = QtGui.QTextImageFormat()
+                            # 发送图片
+                            if msg_recv["mtype"] in (".png", ".gif", ".jpg"):
+                                image_show.setName(path)
+                                image_show.setHeight(100)
+                                image_show.setWidth(100)
+                                tcursor.insertImage(image_show)
+                                curent_private_msg_frame.insertPlainText("(预览)\n")
+                                image_show.setName("./images_src/success.png")
+                                image_show.setHeight(30)
+                                image_show.setWidth(30)
+                                tcursor.insertImage(image_show)
+                                curent_private_msg_frame.insertPlainText("图片\"{filename}{filetype}\"已发送!\n".format(filename=msg_recv["fname"],filetype=msg_recv["mtype"]))
+                            elif msg_recv["mtype"] == "biaoqingbao":
+                                image_show.setName(path)
+                                image_show.setHeight(60)
+                                image_show.setWidth(60)
+                                tcursor.insertImage(image_show)
+                                curent_private_msg_frame.insertPlainText("\n")
+                            # 发送文件
+                            else:
+                                image_show.setName("./images_src/success.png")
+                                image_show.setHeight(30)
+                                image_show.setWidth(30)
+                                tcursor.insertImage(image_show)
+                                curent_private_msg_frame.insertPlainText("文件\"{filename}{filetype}\"已发送!\n".format(filename=msg_recv["fname"],filetype=msg_recv["mtype"]))
                     # 接收的
                     elif msg_recv["destname"] in (self.Username, "all"):  # 本地接收到的消息打印
+                        # 群发
                         if msg_recv["destname"] == "all":
                             self.msg_frame_group.moveCursor(QtGui.QTextCursor.End)
                             self.msg_frame_group.setTextColor(Qt.blue)
@@ -511,70 +535,81 @@ class Ui_chatWindow(object):
                                 f.close()
                             tcursor = self.msg_frame_group.textCursor()
                             image_show = QtGui.QTextImageFormat()
+                            # 图片
                             if msg_recv["mtype"] in (".png", ".gif", ".jpg"):
                                 image_show.setName(path)
                                 image_show.setHeight(100)
                                 image_show.setWidth(100)
                                 tcursor.insertImage(image_show)
-                            else:
-                                image_show.setName("./images/style/MyChat/filebutton.png")
+                                self.msg_frame_group.insertPlainText("(预览)\n")
+                                image_show.setName("./images_src/success.png")
                                 image_show.setHeight(30)
                                 image_show.setWidth(30)
                                 tcursor.insertImage(image_show)
-                                self.msg_frame_group.insertPlainText("文件已保存在：" + path)
-                            self.msg_frame_group.insertPlainText("\n")
+                                self.msg_frame_group.insertPlainText(
+                                    "收到文件\"{filename}{filetype}\"\t".format(filename=msg_recv["fname"],filetype=msg_recv["mtype"]) 
+                                        +"-saved in \""+path+"\".\n"
+                                )
+                            elif msg_recv["mtype"] == "biaoqingbao":
+                                image_show.setName(path)
+                                image_show.setHeight(60)
+                                image_show.setWidth(60)
+                                tcursor.insertImage(image_show)
+                                self.msg_frame_group.insertPlainText("\n")
+                            # 文件
+                            else:
+                                image_show.setName("./images_src/success.png")
+                                image_show.setHeight(30)
+                                image_show.setWidth(30)
+                                tcursor.insertImage(image_show)
+                                self.msg_frame_group.insertPlainText(
+                                    "收到文件\"{filename}{filetype}\"\t".format(filename=msg_recv["fname"],filetype=msg_recv["mtype"]) 
+                                    +"-saved in \""+path+"\".\n")
+                        # 私聊
                         else:
-                            for i in self.prtbutton:
-                                if self.destprtbutton[i] == msg_recv["name"]:
-                                    self.buttontotext[i].moveCursor(QtGui.QTextCursor.End)
-                                    self.buttontotext[i].setTextColor(Qt.blue)
-                                    self.buttontotext[i].insertPlainText(
-                                        " " + msg_recv["name"] + "  " + msgtime + "\n  ")
-                                    path = "./" + self.Username + "/" + msg_recv["fname"] + msg_recv["mtype"]
-                                    with open(path, "wb") as f:
-                                        f.write(base64.b64decode(msg_recv["msg"]))
-                                        f.close()
-                                    tcursor = self.buttontotext[i].textCursor()
-                                    image_show = QtGui.QTextImageFormat()
-                                    if msg_recv["mtype"] in (".png", ".gif", ".jpg"):
-                                        image_show.setName(path)
-                                        image_show.setHeight(100)
-                                        image_show.setWidth(100)
-                                        tcursor.insertImage(image_show)
-                                    else:
-                                        image_show.setName("./images/style/MyChat/filebutton.png")
-                                        image_show.setHeight(30)
-                                        image_show.setWidth(30)
-                                        tcursor.insertImage(image_show)
-                                        self.buttontotext[i].insertPlainText("文件已保存在："+path)
-                                    self.buttontotext[i].insertPlainText("\n")
-                                    break
-                                elif self.destprtbutton[i] == None:
-                                    self.destprtbutton[i] = msg_recv["name"]
-                                    i.setText(msg_recv["name"])
-                                    self.buttontotext[i].moveCursor(QtGui.QTextCursor.End)
-                                    self.buttontotext[i].setTextColor(Qt.blue)
-                                    self.buttontotext[i].insertPlainText(
-                                        " " + msg_recv["name"] + "  " + msgtime + "\n  ")
-                                    path = "./" + self.Username + "/" + msg_recv["fname"] + msg_recv["mtype"]
-                                    with open(path, "wb") as f:
-                                        f.write(base64.b64decode(msg_recv["msg"]))
-                                        f.close()
-                                    tcursor = self.buttontotext[i].textCursor()
-                                    image_show = QtGui.QTextImageFormat()
-                                    if msg_recv["mtype"] in (".png", ".gif", ".jpg"):
-                                        image_show.setName(path)
-                                        image_show.setHeight(100)
-                                        image_show.setWidth(100)
-                                        tcursor.insertImage(image_show)
-                                    else:
-                                        image_show.setName("./images/style/MyChat/filebutton.png")
-                                        image_show.setHeight(30)
-                                        image_show.setWidth(30)
-                                        tcursor.insertImage(image_show)
-                                        self.buttontotext[i].insertPlainText("文件已保存在："+path)
-                                    self.buttontotext[i].insertPlainText("\n")
-                                    break
+                            who_send = msg_recv["name"]
+                            if who_send in self.msg_frames_private:
+                                curent_private_msg_frame = self.msg_frames_private[who_send]
+                                curent_private_msg_frame.moveCursor(QtGui.QTextCursor.End)
+                                curent_private_msg_frame.setTextColor(Qt.blue)
+                                curent_private_msg_frame.insertPlainText(
+                                    " " + msg_recv["name"] + "  " + msgtime + "\n  ")
+                                path = "./" + self.Username + "/" + msg_recv["fname"] + msg_recv["mtype"]
+                                with open(path, "wb") as f:
+                                    f.write(base64.b64decode(msg_recv["msg"]))
+                                    f.close()
+                                tcursor = curent_private_msg_frame.textCursor()
+                                image_show = QtGui.QTextImageFormat()
+                                # 图片
+                                if msg_recv["mtype"] in (".png", ".gif", ".jpg"):
+                                    image_show.setName(path)
+                                    image_show.setHeight(100)
+                                    image_show.setWidth(100)
+                                    tcursor.insertImage(image_show)
+                                    curent_private_msg_frame.insertPlainText("(预览)\n")
+                                    image_show.setName("./images_src/success.png")
+                                    image_show.setHeight(30)
+                                    image_show.setWidth(30)
+                                    tcursor.insertImage(image_show)
+                                    curent_private_msg_frame.insertPlainText(
+                                        "收到图片\"{filename}{filetype}\"\t".format(filename=msg_recv["fname"],filetype=msg_recv["mtype"]) 
+                                        +"-saved in \""+path+"\".\n"
+                                    )
+                                elif msg_recv["mtype"] == "biaoqingbao":
+                                    image_show.setName(path)
+                                    image_show.setHeight(60)
+                                    image_show.setWidth(60)
+                                    tcursor.insertImage(image_show)
+                                    curent_private_msg_frame.insertPlainText("\n")
+                                # 文件
+                                else:
+                                    image_show.setName("./images_src/success.png")
+                                    image_show.setHeight(30)
+                                    image_show.setWidth(30)
+                                    tcursor.insertImage(image_show)
+                                    curent_private_msg_frame.insertPlainText(
+                                        "收到文件\"{filename}{filetype}\"\t".format(filename=msg_recv["fname"],filetype=msg_recv["mtype"]) 
+                                        +"-saved in \""+path+"\".\n")
 
             while len(client.sysmsg):
                 msg_recv = client.sysmsg.pop()
@@ -603,7 +638,8 @@ class Ui_chatWindow(object):
         # 隐藏所有私聊消息框
         for username in self.msg_frames_private:
             self.msg_frames_private[username].hide()
-        self.msg_frame_group.insertPlainText("you are in the group chatting room~\n")
+        self.msg_frame_group.setTextColor(Qt.gray)
+        self.msg_frame_group.insertPlainText("------you are in the group chatting room~------\n")
         # 显示群聊消息框
         self.msg_frame_group.show()
         self.send_to_user = "all"
@@ -656,7 +692,7 @@ class Ui_chatWindow(object):
             f = image_file.read()
             image = base64.encodebytes(f).decode("utf-8")
             image_file.close()
-        client.send_Msg(image,self.send_to_user,file_type,filename)
+        client.send_Msg(image,self.send_to_user,"biaoqingbao",filename)
 
 # 点击登录按钮，触发
 def login_button_clicked(ui,loginWindow):
