@@ -10,6 +10,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import images_src.login_images_src
+from PyQt5.QtCore import Qt
 
 
 class Ui_loginWindow(object):
@@ -52,6 +53,7 @@ class Ui_loginWindow(object):
         self.login_button = QtWidgets.QPushButton(self.centralwidget)
         self.login_button.setMinimumSize(QtCore.QSize(0, 20))
         self.login_button.setMaximumSize(QtCore.QSize(16777215, 20))
+        self.login_button.setCursor(Qt.PointingHandCursor)
         palette = QtGui.QPalette()
         brush = QtGui.QBrush(QtGui.QColor(108, 184, 255))
         brush.setStyle(QtCore.Qt.SolidPattern)
@@ -116,19 +118,20 @@ class Ui_loginWindow(object):
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         spacerItem4 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_3.addItem(spacerItem4)
-        self.regester_button = QtWidgets.QPushButton(self.centralwidget)
+        self.register_button = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.regester_button.sizePolicy().hasHeightForWidth())
-        self.regester_button.setSizePolicy(sizePolicy)
+        sizePolicy.setHeightForWidth(self.register_button.sizePolicy().hasHeightForWidth())
+        self.register_button.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
         font.setPointSize(6)
-        self.regester_button.setFont(font)
-        self.regester_button.setStyleSheet("border:none")
-        self.regester_button.setIconSize(QtCore.QSize(8, 8))
-        self.regester_button.setObjectName("regester_button")
-        self.horizontalLayout_3.addWidget(self.regester_button)
+        self.register_button.setFont(font)
+        self.register_button.setStyleSheet("border:none")
+        self.register_button.setIconSize(QtCore.QSize(8, 8))
+        self.register_button.setObjectName("register_button")
+        self.register_button.setCursor(Qt.PointingHandCursor)
+        self.horizontalLayout_3.addWidget(self.register_button)
         spacerItem5 = QtWidgets.QSpacerItem(68, 13, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_3.addItem(spacerItem5)
         self.gridLayout.addLayout(self.horizontalLayout_3, 4, 0, 1, 3)
@@ -192,7 +195,7 @@ class Ui_loginWindow(object):
         loginWindow.setWindowTitle(_translate("loginWindow", "Chatting"))
         self.login_button.setText(_translate("loginWindow", "登录"))
         self.userName.setPlaceholderText(_translate("loginWindow", "用户名"))
-        self.regester_button.setText(_translate("loginWindow", "注册账号"))
+        self.register_button.setText(_translate("loginWindow", "注册账号"))
         self.password.setPlaceholderText(_translate("loginWindow", "密码"))
 
     
