@@ -1,0 +1,15 @@
+C:/Users/susu/Documents/mycode/DSD/encoder8x3.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/encoder8x3.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module Encoder8x3
+
+Top level modules:
+	Encoder8x3
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/tb_Encoder8x3.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/tb_Encoder8x3.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module tb_Encoder8x3
+
+Top level modules:
+	tb_Encoder8x3
+
+} {} {}}

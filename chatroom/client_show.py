@@ -17,6 +17,19 @@ from register_window import Ui_registerWindow
 from PyQt5.QtGui import QColor
 
 import images_src.chat_images_src,images_src.login_images_src
+'''
+无效
+class MyWindow(QtWidgets.QMainWindow):
+    def closeEvent(self,event):
+        result = QMessageBox.question(self,
+                      "Confirm Exit...",
+                      "Are you sure you want to exit ?",
+                      QtGui.QMessageBox.Yes| QtGui.QMessageBox.No)
+        event.ignore()
+
+        if result == QtGui.QMessageBox.Yes:
+            event.accept()
+''' 
 
 class Ui_chatWindow(object):
     def __init__(self, name,chatwindow):
@@ -119,7 +132,7 @@ class Ui_chatWindow(object):
             icon.setMargin(4)
             movie = QtGui.QMovie()
             movie.setScaledSize(QtCore.QSize(30, 30))
-            movie.setFileName("./images/emoji/"+str(i)+".gif")
+            movie.setFileName("./images_src/emoji/"+str(i)+".gif")
             movie.start()
             # icon放的表情
             icon.setMovie(movie)
@@ -222,7 +235,7 @@ class Ui_chatWindow(object):
             for username in self.msg_frames_private:
                 self.msg_frames_private[username].hide()
             self.msg_frames_private[username_clicked].setTextColor(Qt.gray)
-            self.msg_frames_private[username_clicked].insertPlainText("------you are chatting with {name}~------\n".format(name=username))
+            self.msg_frames_private[username_clicked].insertPlainText("------you are chatting with {name}~------\n".format(name=username_clicked))
             self.msg_frames_private[username_clicked].show()
             self.send_to_user = username_clicked
         # 点击用户未打开过消息框
@@ -304,7 +317,7 @@ class Ui_chatWindow(object):
                             self.msg_frame_group.setTextColor(QColor(85,170,127))
                             self.msg_frame_group.insertPlainText(
                                 " " + msg_recv["name"] + "  " + msgtime + "\n  ")
-                            path = "./images/emoji/"+ str(msg_recv["msg"]) +".gif"
+                            path = "./images_src/emoji/"+ str(msg_recv["msg"]) +".gif"
                             tcursor = self.msg_frame_group.textCursor()
                             image_show = QtGui.QTextImageFormat()
                             image_show.setName(path)
@@ -319,7 +332,7 @@ class Ui_chatWindow(object):
                             curent_private_msg_frame.setTextColor(QColor(85,170,127))
                             curent_private_msg_frame.insertPlainText(
                                 " " + msg_recv["name"] + "  " + msgtime + "\n  ")
-                            path = "./images/emoji/"+ str(msg_recv["msg"]) +".gif"
+                            path = "./images_src/emoji/"+ str(msg_recv["msg"]) +".gif"
                             tcursor = curent_private_msg_frame.textCursor()
                             image_show = QtGui.QTextImageFormat()
                             image_show.setName(path)
@@ -336,7 +349,7 @@ class Ui_chatWindow(object):
                             self.msg_frame_group.setTextColor(QColor(62,62,185))
                             self.msg_frame_group.insertPlainText(
                                 " " + msg_recv["name"] + "  " + msgtime + "\n  ")
-                            path = "./images/emoji/"+ str(msg_recv["msg"]) +".gif"
+                            path = "./images_src/emoji/"+ str(msg_recv["msg"]) +".gif"
                             tcursor = self.msg_frame_group.textCursor()
                             image_show = QtGui.QTextImageFormat()
                             image_show.setName(path)
@@ -354,7 +367,7 @@ class Ui_chatWindow(object):
                                 curent_private_msg_frame.setTextColor(QColor(62,62,185))
                                 curent_private_msg_frame.insertPlainText(
                                     " " + msg_recv["name"] + "  " + msgtime + "\n  ")
-                                path = "./images/emoji/"+ str(msg_recv["msg"]) +".gif"
+                                path = "./images_src/emoji/"+ str(msg_recv["msg"]) +".gif"
                                 tcursor = curent_private_msg_frame.textCursor()
                                 image_show = QtGui.QTextImageFormat()
                                 image_show.setName(path)

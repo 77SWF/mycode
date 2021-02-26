@@ -1,0 +1,26 @@
+module tb_ALU;
+    wire [7:0] sum, c_out;
+    reg [2:0] oper ;
+    reg [7:0] a;
+    reg [7:0] b;
+    reg c_in;
+
+    ALU alu(c_out,sum,oper,a,b,c_in);
+
+    integer k;
+
+    initial
+    begin
+        for(k=0;k<8;k=k+1)
+        begin
+            a = ($random) % 256;
+            b = ($random) % 256;
+            c_in = ($random) % 2;
+            #5;
+        end
+    end
+
+    initial
+        $monitor("At time %4t, a=%b, b=%b, c_in=%b, oper=%b, sum=%b, c_out=%b",
+                    $time, a, b, c_in, oper, sum, c_out);
+endmodule

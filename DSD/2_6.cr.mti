@@ -1,0 +1,15 @@
+C:/Users/susu/Documents/mycode/DSD/ones_count.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/ones_count.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module ones_count
+
+Top level modules:
+	ones_count
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/tb_ones_count.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/tb_ones_count.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module tb_ones_count
+
+Top level modules:
+	tb_ones_count
+
+} {} {}}

@@ -1,0 +1,24 @@
+C:/Users/susu/Documents/mygithub/mycode/DSD/moore.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mygithub/mycode/DSD/moore.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module moore
+
+Top level modules:
+	moore
+
+} {} {}} C:/Users/susu/Documents/mygithub/mycode/DSD/top.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mygithub/mycode/DSD/top.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module mealy
+-- Compiling module moore
+-- Compiling module top
+
+Top level modules:
+	top
+
+} {} {}} C:/Users/susu/Documents/mygithub/mycode/DSD/mealy.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mygithub/mycode/DSD/mealy.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module mealy
+
+Top level modules:
+	mealy
+
+} {} {}}

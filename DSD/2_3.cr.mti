@@ -1,0 +1,29 @@
+C:/Users/susu/Documents/mycode/DSD/mux2x1.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/mux2x1.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module mux2x1
+
+Top level modules:
+	mux2x1
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/tb_mux2x1.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/tb_mux2x1.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module tb_mux2x1
+
+Top level modules:
+	tb_mux2x1
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/mux4x1.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/mux4x1.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module mux4x1
+
+Top level modules:
+	mux4x1
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/tb_mux4x1.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/tb_mux4x1.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module tb_mux4x1
+
+Top level modules:
+	tb_mux4x1
+
+} {} {}}

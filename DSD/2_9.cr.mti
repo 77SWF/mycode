@@ -1,0 +1,15 @@
+C:/Users/susu/Documents/mycode/DSD/LFSR.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/LFSR.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module LFSR
+
+Top level modules:
+	LFSR
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/tb_LFSR.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/tb_LFSR.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module tb_LFSR
+
+Top level modules:
+	tb_LFSR
+
+} {} {}}

@@ -1,0 +1,13 @@
+`timescale 1ns / 1ns
+module comb_str(y,sel,A,B,C,D);
+    output y;
+    input sel,A,B,C,D;
+
+    wire in0,in1;
+
+    nand #(3) u1(in0,A,B);
+    nand #(4) u2(in1,C,D);
+
+    bufif0 mux1(y,in0,sel);
+    bufif1 mux2(y,in1,sel);
+endmodule

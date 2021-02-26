@@ -1,0 +1,36 @@
+C:/Users/susu/Documents/mycode/DSD/comb_str.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/comb_str.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module comb_str
+
+Top level modules:
+	comb_str
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/comb_datafow.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/comb_datafow.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module comb_dataflow
+
+Top level modules:
+	comb_dataflow
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/testbench_comb.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/testbench_comb.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module testbench_comb
+
+Top level modules:
+	testbench_comb
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/comb_behavior.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/comb_behavior.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module comb_behaviour
+
+Top level modules:
+	comb_behaviour
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/comb_prim.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/comb_prim.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling UDP comb_prim
+
+Top level modules:
+	--none--
+
+} {} {}}

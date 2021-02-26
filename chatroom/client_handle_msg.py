@@ -86,6 +86,8 @@ class build_client(object):
                 msg_recv = eval(self.s.recv(1024))
             except socket.timeout:
                 pass
+            except SyntaxError:
+                continue
             except socket.error as err:
                 #软件导致连接退出
                 if err.errno == 10053:

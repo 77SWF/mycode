@@ -1,0 +1,15 @@
+C:/Users/susu/Documents/mycode/DSD/shift_counter.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/shift_counter.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module shift_counter
+
+Top level modules:
+	shift_counter
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/tb_shift_counter.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/tb_shift_counter.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module tb_shift_counter
+
+Top level modules:
+	tb_shift_counter
+
+} {} {}}

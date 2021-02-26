@@ -1,0 +1,15 @@
+C:/Users/susu/Documents/mycode/DSD/filter.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/filter.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module filter
+
+Top level modules:
+	filter
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/tb_filter.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/tb_filter.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module tb_filter
+
+Top level modules:
+	tb_filter
+
+} {} {}}

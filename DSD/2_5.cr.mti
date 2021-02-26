@@ -1,0 +1,29 @@
+C:/Users/susu/Documents/mycode/DSD/comb_Y1.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/comb_Y1.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module comb_Y1
+
+Top level modules:
+	comb_Y1
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/comb_Y2.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/comb_Y2.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module comb_Y2
+
+Top level modules:
+	comb_Y2
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/tb_comb_Y1.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/tb_comb_Y1.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module tb_comb_Y1
+
+Top level modules:
+	tb_comb_Y1
+
+} {} {}} C:/Users/susu/Documents/mycode/DSD/tb_comb_Y2.v {1 {vlog -work work -stats=none C:/Users/susu/Documents/mycode/DSD/tb_comb_Y2.v
+Model Technology ModelSim PE Student Edition vlog 10.4a Compiler 2015.03 Apr  7 2015
+-- Compiling module tb_comb_Y2
+
+Top level modules:
+	tb_comb_Y2
+
+} {} {}}
