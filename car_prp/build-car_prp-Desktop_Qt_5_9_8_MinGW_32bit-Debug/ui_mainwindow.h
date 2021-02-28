@@ -298,7 +298,7 @@ public:
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 1600, 26));
+        menuBar->setGeometry(QRect(0, 0, 1600, 17));
         MainWindow->setMenuBar(menuBar);
         mainToolBar = new QToolBar(MainWindow);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
@@ -314,7 +314,7 @@ public:
 
     void retranslateUi(QMainWindow *MainWindow)
     {
-        MainWindow->setWindowTitle(QApplication::translate("MainWindow", "\350\275\246\350\275\275\347\275\221\345\205\263\347\256\241\347\220\206\345\271\263\345\217\260", Q_NULLPTR));
+        MainWindow->setWindowTitle(QApplication::translate("MainWindow", "FOTA\347\256\241\347\220\206\345\271\263\345\217\260", Q_NULLPTR));
         set_config->setText(QApplication::translate("MainWindow", "\350\256\276\347\275\256", Q_NULLPTR));
         label->setText(QApplication::translate("MainWindow", "\346\212\245\346\226\207\346\226\207\344\273\266\345\220\215\357\274\232", Q_NULLPTR));
         file_name_input->setPlaceholderText(QApplication::translate("MainWindow", "_.txt", Q_NULLPTR));

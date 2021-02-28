@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>车载网关管理平台</string>
+   <string>FOTA管理平台</string>
   </property>
   <property name="styleSheet">
    <string notr="true">background-image: url(:/new/prefix1/背景.jpg);</string>
@@ -333,7 +333,7 @@
      <x>0</x>
      <y>0</y>
      <width>1600</width>
-     <height>26</height>
+     <height>17</height>
     </rect>
    </property>
   </widget>

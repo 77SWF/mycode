@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/new/prefix1">
         <file>背景.jpg</file>
+        <file>home.jpg</file>
+        <file>home2.jpg</file>
     </qresource>
 </RCC>
