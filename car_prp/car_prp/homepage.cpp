@@ -20,7 +20,7 @@ void homepage::on_fota_pb_clicked()
 
 void homepage::on_system_pb_clicked()
 {
-    //system_window.show();
+    system_window.show();
 }
 
 void homepage::on_key_pb_clicked()

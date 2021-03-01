@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include "mainwindow.h"
-//#include "systempage.h"
+#include "systempage.h"
 namespace Ui {
 class homepage;
 }
@@ -16,7 +16,7 @@ public:
     explicit homepage(QWidget *parent = nullptr);
     ~homepage();
     MainWindow fota_window;
-    //systempage system_window;
+    systempage system_window;
 
 private slots:
     void on_fota_pb_clicked();

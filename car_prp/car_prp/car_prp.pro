@@ -28,17 +28,20 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         traveling.cpp \
-        homepage.cpp
+        homepage.cpp \
+    systempage.cpp
 
 HEADERS += \
         mainwindow.h \
         traveling.h \
-        homepage.h
+        homepage.h \
+    systempage.h
 
 FORMS += \
         mainwindow.ui \
         traveling.ui \
-        homepage.ui
+        homepage.ui \
+    systempage.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

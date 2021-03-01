@@ -1,0 +1,15 @@
+22:08:39: 为项目car_prp执行步骤 ...
+22:08:39: 配置没有改变, 跳过 qmake 步骤。
+22:08:39: 正在启动 "C:\Qt\Qt5.9.8\Tools\mingw530_32\bin\mingw32-make.exe" -j8
+
+C:/Qt/Qt5.9.8/Tools/mingw530_32/bin/mingw32-make -f Makefile.Debug
+mingw32-make[1]: Entering directory 'C:/Users/susu/Documents/mygithub/mycode/car_prp/build-car_prp-Desktop_Qt_5_9_8_MinGW_32bit-Debug'
+g++ -c -fno-keep-inline-dllexport -g -std=gnu++11 -Wall -W -Wextra -fexceptions -mthreads -DUNICODE -D_UNICODE -DWIN32 -DQT_DEPRECATED_WARNINGS -DQT_QML_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SQL_LIB -DQT_CORE_LIB -DQT_NEEDS_QMAIN -I..\car_prp -I. -IC:\Qt\Qt5.9.8\5.9.8\mingw53_32\include -IC:\Qt\Qt5.9.8\5.9.8\mingw53_32\include\QtWidgets -IC:\Qt\Qt5.9.8\5.9.8\mingw53_32\include\QtGui -IC:\Qt\Qt5.9.8\5.9.8\mingw53_32\include\QtANGLE -IC:\Qt\Qt5.9.8\5.9.8\mingw53_32\include\QtSql -IC:\Qt\Qt5.9.8\5.9.8\mingw53_32\include\QtCore -Idebug -I. -IC:\Qt\Qt5.9.8\5.9.8\mingw53_32\mkspecs\win32-g++  -o debug\systempage.o ..\car_prp\systempage.cpp
+..\car_prp\systempage.cpp: In member function 'void systempage::on_read_file_clicked()':
+..\car_prp\systempage.cpp:91:11: warning: unused variable 'str' [-Wunused-variable]
+     char *str = tem.data();
+           ^
+g++ -Wl,-subsystem,windows -mthreads -o debug\car_prp.exe object_script.car_prp.Debug  -lmingw32 -LC:\Qt\Qt5.9.8\5.9.8\mingw53_32\lib C:\Qt\Qt5.9.8\5.9.8\mingw53_32\lib\libqtmaind.a -LC:\openssl\lib -LC:\Utils\my_sql\my_sql\lib -LC:\Utils\postgresql\pgsql\lib -lshell32 C:\Qt\Qt5.9.8\5.9.8\mingw53_32\lib\libQt5Widgetsd.a C:\Qt\Qt5.9.8\5.9.8\mingw53_32\lib\libQt5Guid.a C:\Qt\Qt5.9.8\5.9.8\mingw53_32\lib\libQt5Sqld.a C:\Qt\Qt5.9.8\5.9.8\mingw53_32\lib\libQt5Cored.a 
+mingw32-make[1]: Leaving directory 'C:/Users/susu/Documents/mygithub/mycode/car_prp/build-car_prp-Desktop_Qt_5_9_8_MinGW_32bit-Debug'
+22:08:48: 进程"C:\Qt\Qt5.9.8\Tools\mingw530_32\bin\mingw32-make.exe"正常退出。
+22:08:48: Elapsed time: 00:09.
